@@ -1,6 +1,6 @@
 // ignore_for_file: file_names
 
-import 'package:dlinks/features/splash/screen/SplashView.dart';
+import 'package:dlinks/features/splash/SplashView.dart';
 import 'package:flutter/material.dart';
 
 class DLinksApplication extends StatelessWidget {
