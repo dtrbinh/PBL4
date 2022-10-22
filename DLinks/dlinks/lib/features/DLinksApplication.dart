@@ -1,21 +1,28 @@
 // ignore_for_file: file_names
 
-import 'package:dlinks/features/splash/SplashView.dart';
+import 'package:dlinks/data/provider/UserProvider.dart';
+import 'package:dlinks/utils/RouteManager.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class DLinksApplication extends StatelessWidget {
   const DLinksApplication({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+    return MultiProvider(
+      providers: [ChangeNotifierProvider(create: (_) => UserProvider())],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'DUT Links',
+        theme: ThemeData(
+          brightness: Brightness.light,
+          fontFamily: 'Nunito',
+          useMaterial3: true,
+        ),
+        initialRoute: AppRoute.splash,
+        onGenerateRoute: AppRoute.onGenerateRoute,
       ),
-      home: const SplashView(),
     );
   }
 }
-

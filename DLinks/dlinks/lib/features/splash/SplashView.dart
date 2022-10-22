@@ -1,10 +1,9 @@
-// ignore_for_file: unnecessary_const
-
 import 'package:dlinks/architecture/BaseView.dart';
 import 'package:dlinks/architecture/BaseViewModel.dart';
 import 'package:dlinks/features/splash/SplashViewModel.dart';
 import 'package:dlinks/utils/AppColor.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class SplashView extends BaseView {
   const SplashView({Key? key}) : super(key: key);
@@ -25,13 +24,24 @@ class _SplashViewState extends BaseViewState<SplashView, SplashViewModel> {
   Widget getView() {
     return Scaffold(
       body: Container(
-        color: AppColor.PURPLE_1,
+        color: AppColor.BACKGROUND_WHITE,
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
-        child: const Center(
-            child: CircularProgressIndicator(
-          color: AppColor.ORANGE_1,
-        )),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+
+            SizedBox(height: MediaQuery.of(context).size.height/5,),
+            viewModel.isLoading
+                ? SpinKitSpinningLines(
+                    lineWidth: 5,
+                    size: MediaQuery.of(context).size.width/5,
+                    itemCount: 10,
+                    color: AppColor.BLACK,
+                  )
+                : const SizedBox.shrink(),
+          ],
+        ),
       ),
     );
   }
@@ -42,5 +52,7 @@ class _SplashViewState extends BaseViewState<SplashView, SplashViewModel> {
   }
 
   @override
-  void onViewModelReady() {}
+  void onViewModelReady() {
+    viewModel.initAppData(context);
+  }
 }

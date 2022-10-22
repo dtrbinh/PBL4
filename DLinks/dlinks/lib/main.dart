@@ -1,10 +1,13 @@
 import 'package:dlinks/features/DLinksApplication.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+
   SystemChrome.setPreferredOrientations(
-          [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown])
-      .then((value) => runApp(const DLinksApplication()));
+          [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+  runApp(const DLinksApplication());
 }
