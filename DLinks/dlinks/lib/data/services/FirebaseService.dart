@@ -19,7 +19,7 @@ class FirebaseService {
       );
       await _auth.signInWithCredential(credential);
       return FirebaseAuth.instance.currentUser;
-    } on FirebaseAuthException catch (e, stackTrace) {
+    } on FirebaseAuthException catch (e) {
       logError('----------Internal Error: $e');
     }
     return null;
@@ -28,7 +28,7 @@ class FirebaseService {
   Future<String?> createUserWithEmail(String email, String password) async {
     try {
       await _auth.createUserWithEmailAndPassword(email: email, password: password);
-    } catch (e, stackTrace) {
+    } catch (e) {
       logError('----------Internal Error: $e');
       return e.toString();
     }
@@ -38,9 +38,9 @@ class FirebaseService {
 
   Future<void> signOutFromGoogle() async {
     try {
-      await _googleSignIn.signOut();
+      await _googleSignIn.disconnect();
       await _auth.signOut();
-    } catch (error, stackTrace) {
+    } catch (error) {
       logError('----------Internal Error: $error');
     }
   }

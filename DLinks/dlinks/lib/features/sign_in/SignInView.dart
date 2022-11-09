@@ -79,25 +79,41 @@ class _SignInState extends BaseViewState<SignIn, SignInViewModel> {
               const SizedBox(
                 height: 10,
               ),
-              ElevatedButton(
-                  style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(Colors.black)),
-                  onPressed: () {},
-                  child: const Text(
-                    'Sign in',
-                    style: TextStyle(color: AppColor.BACKGROUND_WHITE),
-                  )),
+              Center(
+                child: ElevatedButton(
+                    style: ButtonStyle(
+                        backgroundColor:
+                            MaterialStateProperty.all(Colors.black)),
+                    onPressed: () {
+                      //TODO: login with account
+                      viewModel.showComingSoonDialog(context);
+                    },
+                    child: const Text(
+                      'Sign in',
+                      style: TextStyle(color: AppColor.BACKGROUND_WHITE),
+                    )),
+              ),
               const SizedBox(
                 height: 20,
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Text("Don't have an account?"),
-                  SizedBox(
+                children: [
+                  const Text("Don't have an account?"),
+                  const SizedBox(
                     width: 10,
                   ),
-                  Text("Sign up")
+                  GestureDetector(
+                    onTap: (){
+                      viewModel.showComingSoonDialog(context);
+                    },
+                    child: const Text(
+                      "Sign up",
+                      style: TextStyle(
+                          fontStyle: FontStyle.italic,
+                          decoration: TextDecoration.underline),
+                    ),
+                  )
                 ],
               ),
               const SizedBox(
@@ -130,7 +146,9 @@ class _SignInState extends BaseViewState<SignIn, SignInViewModel> {
                 viewModel.loginGoogle(context);
               }, 'Sign in with Google', "assets/icons/ic_google.png"),
               _loginCard(() {
+                //TODO: login with phone number
                 viewModel.loginPhoneNum(context);
+                viewModel.showComingSoonDialog(context);
               }, 'Sign in with Phone Number', 'assets/icons/ic_phone.png'),
             ],
           ),
