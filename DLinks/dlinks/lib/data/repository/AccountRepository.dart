@@ -16,23 +16,22 @@ class AccountRepository {
     user = FirebaseAuth.instance.currentUser;
   }
 
-  Future<bool> handleSignIn() async {
+  Future<User?> handleSignIn() async {
     try {
       user = await firebaseService.signInWithGoogle();
       if (user != null) {
-        return true;
+        return user;
       } else {
-        return false;
+        return null;
       }
     } catch (error) {
       logError('----------Internal Error: $error');
-      return false;
+      return null;
     }
   }
 
   Future<bool> handleSignOut() async {
     try {
-      // googleSignIn.disconnect();
       await firebaseService.signOutFromGoogle();
       return true;
     } catch (error) {

@@ -30,13 +30,9 @@ class _SplashViewState extends BaseViewState<SplashView, SplashViewModel> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-
-            SizedBox(height: MediaQuery.of(context).size.height/5,),
             viewModel.isLoading
-                ? SpinKitSpinningLines(
-                    lineWidth: 5,
+                ? SpinKitFadingCircle(
                     size: MediaQuery.of(context).size.width/5,
-                    itemCount: 10,
                     color: AppColor.BLACK,
                   )
                 : const SizedBox.shrink(),

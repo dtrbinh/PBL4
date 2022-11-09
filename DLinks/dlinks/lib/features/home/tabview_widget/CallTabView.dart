@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'CallTabViewModel.dart';
 
 class CallTabView extends BaseWidget {
-  final model = CallTabViewModel();
+  final CallTabViewModel model;
 
-  CallTabView({Key? key}) : super(key: key);
+  const CallTabView(this.model, {Key? key}) : super(key: key);
 
   @override
   BaseWidgetState<BaseWidget, BaseWidgetModel> getWidgetState() {
