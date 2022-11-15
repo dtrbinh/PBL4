@@ -3,31 +3,27 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../services/FirebaseService.dart';
 import '../services/error_manager/ErrorLogger.dart';
 
-class AccountRepository {
+class AuthProvider {
   //singleton instance
-  AccountRepository._internal();
-  static final AccountRepository instance = AccountRepository._internal();
+  AuthProvider._internal();
+  static final AuthProvider instance = AuthProvider._internal();
   // ------------------
-
-  User? user;
   FirebaseService firebaseService = FirebaseService();
-
-  AccountRepository() {
-    user = FirebaseAuth.instance.currentUser;
-  }
-
   Future<User?> handleSignIn() async {
+    User? _user;
     try {
-      user = await firebaseService.signInWithGoogle();
-      if (user != null) {
-        return user;
-      } else {
-        return null;
-      }
+      await firebaseService.signInWithGoogle().then((user) {
+        if (user != null) {
+          _user = user;
+        } else {
+          _user = null;
+        }
+      });
     } catch (error) {
       logError('----------Internal Error: $error');
-      return null;
+      _user = null;
     }
+    return _user;
   }
 
   Future<bool> handleSignOut() async {

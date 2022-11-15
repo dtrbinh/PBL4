@@ -8,10 +8,10 @@ import '../../../architecture/BaseWidgetModel.dart';
 
 class AccountTabViewModel extends BaseWidgetModel {
   Future<void> logout(BuildContext context) async {
-    context.read<UserProvider>().userRepository.reset();
+    context.read<UserProvider>().userRepository.logoutCurrentUser();
     await context
         .read<UserProvider>()
-        .accountRepository
+        .authProvider
         .handleSignOut()
         .then((value) {
       value

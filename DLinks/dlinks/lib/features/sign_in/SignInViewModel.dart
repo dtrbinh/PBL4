@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 class SignInViewModel extends BaseViewModel {
   void loginGoogle(BuildContext context) {
-    context.read<UserProvider>().accountRepository.handleSignIn().then((value) {
+    context.read<UserProvider>().authProvider.handleSignIn().then((value) {
       if (value != null) {
         context.read<UserProvider>().userRepository.currentUser = value;
         Navigator.pushReplacementNamed(context, AppRoute.home);

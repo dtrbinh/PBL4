@@ -2,9 +2,7 @@ import 'package:dlinks/architecture/BaseWidget.dart';
 import 'package:dlinks/architecture/BaseWidgetModel.dart';
 import 'package:dlinks/data/constant/AppUtils.dart';
 import 'package:dlinks/data/provider/UserProvider.dart';
-import 'package:dlinks/utils/RouteManager.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
 
 import 'AccountTabViewModel.dart';

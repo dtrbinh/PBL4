@@ -19,7 +19,32 @@ class _MessageTabViewState
     extends BaseWidgetState<MessageTabView, MessageTabViewModel> {
   @override
   Widget getView() {
-    return const Scaffold(body: Center(child: Text('Message')));
+    return Scaffold(
+        appBar: AppBar(
+          title: Text('Chat with ..'),
+        ),
+        body: SizedBox(
+          width: MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.height,
+          child: Column(
+            children: [
+              // Expanded(
+              //   child: StreamBuilder(
+              //       initialData: null,
+              //       stream:,
+              //       builder: (context, snapshot) {
+              //         return SingleChildScrollView(
+              //           child: ListView.separated(itemBuilder: itemBuilder, separatorBuilder: separatorBuilder, itemCount: itemCount),
+              //         );
+              //       }),
+              // ),
+              SizedBox(
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.width / 7,
+              )
+            ],
+          ),
+        ));
   }
 
   @override
@@ -28,6 +53,5 @@ class _MessageTabViewState
   }
 
   @override
-  void onWidgetModelReady() {
-  }
+  void onWidgetModelReady() {}
 }
