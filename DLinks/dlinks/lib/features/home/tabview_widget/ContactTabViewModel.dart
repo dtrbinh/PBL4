@@ -1,20 +1,15 @@
 import 'package:flutter/cupertino.dart';
-import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 
-import '../../../architecture/BaseWidgetModel.dart';
-import '../../../data/model/ChatUser.dart';
 import '../../../data/provider/UserProvider.dart';
 
-class ContactTabViewModel extends BaseWidgetModel {
-  TextEditingController textEditingController = TextEditingController();
-  List<ChatUser> contacts = [];
+class ContactTabViewModel extends GetxController {
+  final UserProvider c = Get.find<UserProvider>();
+  Rx<TextEditingController> textEditingController = TextEditingController().obs;
+  RxList contacts = [].obs;
 
-  Future<void> getContact(BuildContext context) async {
-    contacts = await context
-        .read<UserProvider>()
-        .authProvider
-        .firebaseService
-        .getAllChatUser();
-    notifyListeners();
+  Future<void> getContact() async {
+    contacts.value =
+        await c.authProvider.value.firebaseService.getAllChatUser();
   }
 }

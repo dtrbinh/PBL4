@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import 'AuthProvider.dart';
 import '../repository/UserRepository.dart';
 
-class UserProvider extends ChangeNotifier{
-  final UserRepository userRepository = UserRepository.instance;
-  final AuthProvider authProvider = AuthProvider.instance;
+class UserProvider extends GetxController{
+  final Rx<UserRepository> userRepository = UserRepository.instance.obs;
+  final Rx<AuthProvider> authProvider = AuthProvider.instance.obs;
 }

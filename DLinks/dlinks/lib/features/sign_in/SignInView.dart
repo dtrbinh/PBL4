@@ -1,21 +1,18 @@
-import 'package:dlinks/architecture/BaseView.dart';
-import 'package:dlinks/architecture/BaseViewModel.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../utils/AppColor.dart';
 import 'SignInViewModel.dart';
 
-class SignIn extends BaseView {
-  const SignIn({Key? key}) : super(key: key);
-
+class SignInView extends StatefulWidget {
+  const SignInView({Key? key}) : super(key: key);
   @override
-  BaseViewState<BaseView, BaseViewModel> getViewState() {
-    return _SignInState();
-  }
+  State<SignInView> createState() => _SignInViewState();
 }
 
-class _SignInState extends BaseViewState<SignIn, SignInViewModel> {
+class _SignInViewState extends State<SignInView> {
+  final SignInViewModel viewModel = Get.put(SignInViewModel());
   @override
-  Widget getView() {
+  Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Colors.white,
         body: Padding(
@@ -38,7 +35,7 @@ class _SignInState extends BaseViewState<SignIn, SignInViewModel> {
                 decoration: InputDecoration(
                   focusedBorder: OutlineInputBorder(
                     borderSide:
-                        const BorderSide(color: Colors.black, width: 2.0),
+                    const BorderSide(color: Colors.black, width: 2.0),
                     borderRadius: BorderRadius.circular(20.0),
                   ),
                   border: const OutlineInputBorder(
@@ -61,7 +58,7 @@ class _SignInState extends BaseViewState<SignIn, SignInViewModel> {
                 decoration: InputDecoration(
                     focusedBorder: OutlineInputBorder(
                       borderSide:
-                          const BorderSide(color: Colors.black, width: 2.0),
+                      const BorderSide(color: Colors.black, width: 2.0),
                       borderRadius: BorderRadius.circular(20.0),
                     ),
                     border: const OutlineInputBorder(
@@ -83,10 +80,10 @@ class _SignInState extends BaseViewState<SignIn, SignInViewModel> {
                 child: ElevatedButton(
                     style: ButtonStyle(
                         backgroundColor:
-                            MaterialStateProperty.all(Colors.black)),
+                        MaterialStateProperty.all(Colors.black)),
                     onPressed: () {
                       //TODO: login with account
-                      viewModel.showComingSoonDialog(context);
+                      viewModel.showComingSoonDialog();
                     },
                     child: const Text(
                       'Sign in',
@@ -104,8 +101,8 @@ class _SignInState extends BaseViewState<SignIn, SignInViewModel> {
                     width: 10,
                   ),
                   GestureDetector(
-                    onTap: (){
-                      viewModel.showComingSoonDialog(context);
+                    onTap: () {
+                      viewModel.showComingSoonDialog();
                     },
                     child: const Text(
                       "Sign up",
@@ -124,7 +121,7 @@ class _SignInState extends BaseViewState<SignIn, SignInViewModel> {
                 children: [
                   Container(
                     margin:
-                        const EdgeInsetsDirectional.only(start: 1.0, end: 1.0),
+                    const EdgeInsetsDirectional.only(start: 1.0, end: 1.0),
                     height: 1.0,
                     width: 100,
                     color: Colors.black12,
@@ -132,7 +129,7 @@ class _SignInState extends BaseViewState<SignIn, SignInViewModel> {
                   const Text('  Or  '),
                   Container(
                     margin:
-                        const EdgeInsetsDirectional.only(start: 1.0, end: 1.0),
+                    const EdgeInsetsDirectional.only(start: 1.0, end: 1.0),
                     height: 1.0,
                     width: 100,
                     color: Colors.black12,
@@ -143,26 +140,17 @@ class _SignInState extends BaseViewState<SignIn, SignInViewModel> {
                 height: 10,
               ),
               _loginCard(() {
-                viewModel.loginGoogle(context);
+                viewModel.loginGoogle();
               }, 'Sign in with Google', "assets/icons/ic_google.png"),
               _loginCard(() {
                 //TODO: login with phone number
-                viewModel.loginPhoneNum(context);
-                viewModel.showComingSoonDialog(context);
+                viewModel.loginPhoneNum();
+                viewModel.showComingSoonDialog();
               }, 'Sign in with Phone Number', 'assets/icons/ic_phone.png'),
             ],
           ),
         ));
   }
-
-  @override
-  SignInViewModel getViewModel() {
-    return SignInViewModel();
-  }
-
-  @override
-  void onViewModelReady() {}
-
   Widget _loginCard(VoidCallback onTap, String title, String imageAsset) {
     return GestureDetector(
         onTap: onTap,
@@ -203,3 +191,4 @@ class _SignInState extends BaseViewState<SignIn, SignInViewModel> {
             )));
   }
 }
+

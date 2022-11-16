@@ -1,61 +1,60 @@
-import 'package:dlinks/architecture/BaseWidget.dart';
-import 'package:dlinks/architecture/BaseWidgetModel.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../data/model/ChatUser.dart';
 import 'ContactTabViewModel.dart';
 
-class ContactTabView extends BaseWidget {
-  final ContactTabViewModel model;
-
-  const ContactTabView(this.model, {Key? key}) : super(key: key);
+class ContactTabView extends StatefulWidget {
+  const ContactTabView({Key? key}) : super(key: key);
 
   @override
-  BaseWidgetState<BaseWidget, BaseWidgetModel> getWidgetState() {
-    return _ContactTabViewState();
-  }
+  State<ContactTabView> createState() => _ContactTabViewState();
 }
 
-class _ContactTabViewState
-    extends BaseWidgetState<ContactTabView, ContactTabViewModel> {
+class _ContactTabViewState extends State<ContactTabView> {
+  final ContactTabViewModel viewModel = Get.put(ContactTabViewModel());
+
   @override
-  void onWidgetModelReady() {
-    viewModel.getContact(context);
+  void initState() {
+    viewModel.getContact();
+    super.initState();
   }
 
   @override
-  Widget getView() {
+  Widget build(BuildContext context) {
     return Scaffold(
         body: Container(
       padding: const EdgeInsets.all(8.0),
       height: MediaQuery.of(context).size.height,
       child: RefreshIndicator(
         onRefresh: () async {
-          await viewModel.getContact(context);
+          await viewModel.getContact();
         },
         child: SingleChildScrollView(
-          child: Column(
-              children: <Widget>[
-                    const SizedBox(
-                      height: 50,
-                    ),
-                    SizedBox(
-                      height: 50,
-                      child: TextFormField(
-                        controller: viewModel.textEditingController,
-                        decoration: InputDecoration(
-                            hintText: "Search other user",
-                            border: OutlineInputBorder(
-                                borderSide: const BorderSide(
-                                    color: Colors.black45, width: 1),
-                                borderRadius: BorderRadius.circular(6))),
+          child: Obx(
+            () => Column(
+                children: <Widget>[
+                      const SizedBox(
+                        height: 50,
                       ),
-                    ),
-                    const SizedBox(
-                      height: 30,
-                    ),
-                  ] +
-                  viewModel.contacts.map((e) => _userCard(e)).toList()),
+                      SizedBox(
+                        height: 50,
+                        child: TextFormField(
+                          controller: viewModel.textEditingController.value,
+                          decoration: InputDecoration(
+                              hintText: "Search other user",
+                              border: OutlineInputBorder(
+                                  borderSide: const BorderSide(
+                                      color: Colors.black45, width: 1),
+                                  borderRadius: BorderRadius.circular(6))),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 30,
+                      ),
+                    ] +
+                    viewModel.contacts.map((e) => _userCard(e)).toList()),
+          ),
         ),
       ),
     ));
@@ -93,6 +92,7 @@ class _ContactTabViewState
             width: 30,
           ),
           Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(user.displayName!),
@@ -104,10 +104,5 @@ class _ContactTabViewState
         ],
       ),
     );
-  }
-
-  @override
-  ContactTabViewModel getViewModel() {
-    return widget.model;
   }
 }

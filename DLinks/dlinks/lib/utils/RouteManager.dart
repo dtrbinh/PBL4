@@ -29,7 +29,7 @@ class AppRoute {
       case signin:
         return MaterialPageRoute(
           builder: (_) {
-            return const SignIn();
+            return const SignInView();
           },
         );
       case signup:

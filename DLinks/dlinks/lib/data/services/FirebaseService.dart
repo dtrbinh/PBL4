@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dlinks/data/model/ChatUser.dart';
 import 'package:dlinks/data/model/Message.dart';
@@ -25,7 +27,7 @@ class FirebaseService {
       );
       await _auth.signInWithCredential(credential);
       var user = FirebaseAuth.instance.currentUser;
-      createChatUser(user!);
+      if (user != null) createNewAccount(user);
       return user;
     } on FirebaseAuthException catch (e) {
       logError('----------Internal Error: $e');
@@ -53,6 +55,8 @@ class FirebaseService {
     }
   }
 
+  //-----CHAT USERS REGION
+
   Future<void> createNewAccount(User user) async {
     bool isExist = false;
     await FirebaseFirestore.instance
@@ -60,13 +64,14 @@ class FirebaseService {
         .where("uid", isEqualTo: user.uid)
         .get()
         .then((value) {
-      if (value.docs.first.data().isEmpty) {
+      if (value.size == 0) {
         isExist = false;
       } else {
         isExist = true;
       }
     });
     if (!isExist) {
+      logWarning("---------Users not exist.");
       createChatUser(user);
       createInbox(user);
     } else {
@@ -83,19 +88,30 @@ class FirebaseService {
         .catchError((error, stackTrace) async {
       logError('----------Internal Error: $error');
     });
+    logWarning("---------Create new chat user.");
   }
 
   Future<void> createInbox(User user) async {
-    Inbox userInbox = Inbox(uid: user.uid, yourMessages: []);
+    Inbox userInbox = Inbox(uid: user.uid, messageBox: []);
     TextMessage firstMessage = TextMessage(
-        '00000',
-        '00000',
-        DateTime.now(),
-        false,
-        false,
-        false,
-        'Welcome to DLinks. An application for send messages.');
-    userInbox.yourMessages.add(firstMessage);
+        senderUid: '00000',
+        receiverUid: user.uid,
+        createAt: Timestamp.now(),
+        isRecallBySender: false,
+        isRecallByReceiver: false,
+        isRemoveBySender: false,
+        content: 'Welcome to DLinks. An application for send messages.');
+    TextMessage secondMessage = TextMessage(
+        senderUid: '00000',
+        receiverUid: user.uid,
+        createAt: Timestamp.now(),
+        isRecallBySender: false,
+        isRecallByReceiver: false,
+        isRemoveBySender: false,
+        content: 'This is a message. Thanks.');
+    userInbox.messageBox
+      ..add(firstMessage)
+      ..add(secondMessage);
     await firebaseFirestore
         .collection('Inbox')
         .doc(user.uid)
@@ -103,6 +119,7 @@ class FirebaseService {
         .catchError((error, stackTrace) async {
       logError('----------Internal Error: $error');
     });
+    debugPrint('Created inbox');
   }
 
   Future<List<ChatUser>> getAllChatUser() async {
@@ -121,7 +138,52 @@ class FirebaseService {
 
   List<ChatUser>? searchChatUserByKeyWord(String keyword) {}
 
-  ChatUser? searchChatUserByUid(String uid) {
-    return null;
+  Future<ChatUser?> getChatUserByUid(String uid) async {
+    ChatUser? result;
+    await FirebaseFirestore.instance
+        .collection('ChatUsers')
+        .where("uid", isEqualTo: uid)
+        .get()
+        .then((value) {
+      if (value.size == 0) {
+        result = null;
+      } else {
+        result = ChatUser.fromMap(value.docs.first.data());
+      }
+    });
+    return result;
+  }
+
+  // -----MESSAGES REGION
+  Future<List<Message>> getAllMessagesForUser(
+      String receiverUid, String senderUid) async {
+    Inbox? inbox;
+    await FirebaseFirestore.instance
+        .collection('Inbox')
+        .doc('uid')
+        .get()
+        .then((value) {
+      inbox = Inbox.fromMap(value.data()!);
+      print(value.data());
+    });
+    return inbox != null ? inbox!.messageBox : [];
+  }
+
+  Future<List<ChatUser>> getAllUserChatWithMe(String receiverUid) async {
+    List<ChatUser> result = [];
+    await FirebaseFirestore.instance
+        .collection('Inbox')
+        .doc(receiverUid)
+        .get()
+        .then((value) async {
+      debugPrint(value.data().toString());
+      for (var i in Inbox.fromMap(value.data()!).messageBox) {
+        var j = await getChatUserByUid(i.senderUid);
+        if (j != null) result.add(j);
+      }
+    }, onError: (error) {
+      logError('----------Internal Error: $error');
+    });
+    return result;
   }
 }
