@@ -9,5 +9,6 @@ class MessageTabViewModel extends GetxController {
   Future<void> initData() async {
     userInbox.value = await c.authProvider.value.firebaseService
         .getAllUserChatWithMe(c.userRepository.value.currentUser!.uid);
+    // userInbox.value.
   }
 }

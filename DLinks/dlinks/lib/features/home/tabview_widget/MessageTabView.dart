@@ -1,3 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dlinks/features/chat_screen/ChatScreenView.dart';
+import 'package:dlinks/features/chat_screen/ChatScreenViewModel.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -77,46 +80,65 @@ class _MessageTabViewState extends State<MessageTabView> {
   }
 
   Widget _dialogCard(ChatUser sender) {
-    return Container(
-      width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.height / 12,
-      padding: const EdgeInsets.all(8.0),
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: Colors.black45, width: 1),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 10,
-            )
-          ],
-          color: Colors.white),
-      child: Row(
-        children: [
-          Container(
-            width: 70,
-            height: 70,
-            decoration: BoxDecoration(
-                border: Border.all(color: Colors.black45, width: 0.5),
-                image: DecorationImage(
-                  image: NetworkImage(sender.photoURL!),
-                ),
-                shape: BoxShape.circle),
-          ),
-          const SizedBox(
-            width: 30,
-          ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(sender.displayName!),
-              Text(sender.email!),
+    return GestureDetector(
+      onTap: () {
+        Get.to(() => ChatScreenView(sender.uid));
+      },
+      child: Container(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height / 12,
+        padding: const EdgeInsets.all(8.0),
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.black45, width: 1),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 10,
+              )
             ],
-          ),
-          const Spacer(),
-          IconButton(onPressed: () {}, icon: const Icon(Icons.add))
-        ],
+            color: Colors.white),
+        child: Row(
+          children: [
+            AnimatedContainer(
+              duration: const Duration(seconds: 1),
+              width: 70,
+              height: 70,
+              decoration: BoxDecoration(
+                  border: Border.all(color: Colors.black45, width: 0.5),
+                  image: DecorationImage(
+                    image: CachedNetworkImageProvider(sender.photoURL!),
+                  ),
+                  shape: BoxShape.circle),
+            ),
+            const SizedBox(
+              width: 10,
+            ),
+            Flexible(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    sender.displayName!,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w600, fontSize: 18),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.only(right: 10.0),
+                    child: Text(
+                      "Welcome to DLinks an application for sending message with your friend.",
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      softWrap: false,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

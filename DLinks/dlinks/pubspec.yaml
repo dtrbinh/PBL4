@@ -47,6 +47,9 @@ dependencies:
   cloud_firestore: ^4.0.2
   firebase_core_platform_interface: 4.5.1
 
+  just_audio: ^0.9.30
+  video_player: ^2.4.7
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -18,36 +18,38 @@ class _HomeViewState extends State<HomeView> {
       body: Obx(() => viewModel.getBody()),
       bottomNavigationBar: Theme(
         data: ThemeData(splashColor: Colors.transparent),
-        child: BottomNavigationBar(
-          type: BottomNavigationBarType.shifting,
-          selectedItemColor: Colors.white,
-          unselectedItemColor: Colors.grey,
-          currentIndex: viewModel.currentTab.value,
-          onTap: (index) {
-            viewModel.changeTab(index);
-          },
-          items: const [
-            BottomNavigationBarItem(
-              backgroundColor: Colors.black,
-              icon: Icon(Icons.message),
-              label: 'Message',
-            ),
-            BottomNavigationBarItem(
-              backgroundColor: Colors.black,
-              icon: Icon(Icons.call),
-              label: 'Call',
-            ),
-            BottomNavigationBarItem(
-              backgroundColor: Colors.black,
-              icon: Icon(Icons.contact_page),
-              label: 'Contact',
-            ),
-            BottomNavigationBarItem(
-              backgroundColor: Colors.black,
-              icon: Icon(Icons.account_circle),
-              label: 'Account',
-            ),
-          ],
+        child: Obx(
+          () => BottomNavigationBar(
+            type: BottomNavigationBarType.shifting,
+            selectedItemColor: Colors.white,
+            unselectedItemColor: Colors.grey,
+            currentIndex: viewModel.currentTab.value,
+            onTap: (index) {
+              viewModel.changeTab(index);
+            },
+            items: const [
+              BottomNavigationBarItem(
+                backgroundColor: Colors.black,
+                icon: Icon(Icons.message),
+                label: 'Message',
+              ),
+              BottomNavigationBarItem(
+                backgroundColor: Colors.black,
+                icon: Icon(Icons.call),
+                label: 'Call',
+              ),
+              BottomNavigationBarItem(
+                backgroundColor: Colors.black,
+                icon: Icon(Icons.contact_page),
+                label: 'Contact',
+              ),
+              BottomNavigationBarItem(
+                backgroundColor: Colors.black,
+                icon: Icon(Icons.account_circle),
+                label: 'Account',
+              ),
+            ],
+          ),
         ),
       ),
     );

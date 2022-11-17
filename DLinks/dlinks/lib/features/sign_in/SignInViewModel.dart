@@ -18,8 +18,9 @@ class SignInViewModel extends GetxController {
               ? "Login successfully!"
               : "Login failed, please try again.",
           colorText: Colors.white,
+          backgroundColor: Colors.black,
           duration: const Duration(seconds: 2),
-          snackPosition: SnackPosition.BOTTOM);
+          snackPosition: SnackPosition.TOP);
     });
   }
 

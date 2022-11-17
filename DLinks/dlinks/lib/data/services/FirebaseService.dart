@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dlinks/data/model/ChatUser.dart';
@@ -88,7 +89,7 @@ class FirebaseService {
         .catchError((error, stackTrace) async {
       logError('----------Internal Error: $error');
     });
-    logWarning("---------Create new chat user.");
+    logWarning("---------Created new chat user.");
   }
 
   Future<void> createInbox(User user) async {
@@ -108,10 +109,50 @@ class FirebaseService {
         isRecallBySender: false,
         isRecallByReceiver: false,
         isRemoveBySender: false,
-        content: 'This is a message. Thanks.');
+        content: 'This is demo 5 types of message: Text, Audio, Image, Video, File.');
+    ImageMessage imageMessage = ImageMessage(
+        senderUid: '00000',
+        receiverUid: user.uid,
+        createAt: Timestamp.now(),
+        isRecallBySender: false,
+        isRecallByReceiver: false,
+        isRemoveBySender: false,
+        imageUrl: 'https://picsum.photos/200/300');
+    AudioMessage audioMessage = AudioMessage(
+        senderUid: '00000',
+        receiverUid: user.uid,
+        createAt: Timestamp.now(),
+        isRecallBySender: false,
+        isRecallByReceiver: false,
+        isRemoveBySender: false,
+        audioUrl:
+            'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3');
+    FileMessage fileMessage = FileMessage(
+        senderUid: '00000',
+        receiverUid: user.uid,
+        createAt: Timestamp.now(),
+        isRecallBySender: false,
+        isRecallByReceiver: false,
+        isRemoveBySender: false,
+        fileUrl:
+            'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf');
+    VideoMessage videoMessage = VideoMessage(
+        senderUid: '00000',
+        receiverUid: user.uid,
+        createAt: Timestamp.now(),
+        isRecallBySender: false,
+        isRecallByReceiver: false,
+        isRemoveBySender: false,
+        videoUrl:
+            'https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4');
+
     userInbox.messageBox
       ..add(firstMessage)
-      ..add(secondMessage);
+      ..add(secondMessage)
+      ..add(imageMessage)
+      ..add(audioMessage)
+      ..add(fileMessage)
+      ..add(videoMessage);
     await firebaseFirestore
         .collection('Inbox')
         .doc(user.uid)
@@ -119,7 +160,7 @@ class FirebaseService {
         .catchError((error, stackTrace) async {
       logError('----------Internal Error: $error');
     });
-    debugPrint('Created inbox');
+    logWarning('----------Created inbox.');
   }
 
   Future<List<ChatUser>> getAllChatUser() async {
@@ -132,7 +173,6 @@ class FirebaseService {
     }, onError: (error) {
       logError('----------Internal Error: $error');
     });
-    debugPrint(result.length.toString());
     return result;
   }
 
@@ -155,18 +195,16 @@ class FirebaseService {
   }
 
   // -----MESSAGES REGION
-  Future<List<Message>> getAllMessagesForUser(
-      String receiverUid, String senderUid) async {
+  Future<Inbox?> getAllMessagesForUser(String receiverUid) async {
     Inbox? inbox;
     await FirebaseFirestore.instance
         .collection('Inbox')
-        .doc('uid')
+        .doc(receiverUid)
         .get()
         .then((value) {
       inbox = Inbox.fromMap(value.data()!);
-      print(value.data());
     });
-    return inbox != null ? inbox!.messageBox : [];
+    return (inbox != null) ? inbox : null; // select distinct
   }
 
   Future<List<ChatUser>> getAllUserChatWithMe(String receiverUid) async {
@@ -176,10 +214,17 @@ class FirebaseService {
         .doc(receiverUid)
         .get()
         .then((value) async {
-      debugPrint(value.data().toString());
-      for (var i in Inbox.fromMap(value.data()!).messageBox) {
+      // debugPrint(value.data().toString());
+      for (Message i in Inbox.fromMap(value.data()!).messageBox) {
         var j = await getChatUserByUid(i.senderUid);
-        if (j != null) result.add(j);
+        if (j != null) {
+          if (result
+              .where((element) => element.uid == j.uid)
+              .toList()
+              .isEmpty) {
+            result.add(j);
+          }
+        }
       }
     }, onError: (error) {
       logError('----------Internal Error: $error');
