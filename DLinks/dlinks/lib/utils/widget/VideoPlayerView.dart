@@ -30,8 +30,7 @@ class _VideoPlayerViewState extends State<VideoPlayerView> {
     return AspectRatio(
       aspectRatio: videoController.value.aspectRatio,
       child: ClipRRect(
-          borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(16), topRight: Radius.circular(16)),
+          borderRadius: BorderRadius.circular(16),
           child: Stack(
             alignment: Alignment.bottomCenter,
             children: <Widget>[

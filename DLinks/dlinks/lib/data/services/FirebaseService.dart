@@ -109,7 +109,8 @@ class FirebaseService {
         isRecallBySender: false,
         isRecallByReceiver: false,
         isRemoveBySender: false,
-        content: 'This is demo 5 types of message: Text, Audio, Image, Video, File.');
+        content:
+            'This is demo 5 types of message: Text, Audio, Image, Video, File.');
     ImageMessage imageMessage = ImageMessage(
         senderUid: '00000',
         receiverUid: user.uid,
@@ -146,13 +147,31 @@ class FirebaseService {
         videoUrl:
             'https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4');
 
+    TextMessage devMessage1 = TextMessage(
+        senderUid: '00000',
+        receiverUid: user.uid,
+        createAt: Timestamp.now(),
+        isRecallBySender: false,
+        isRecallByReceiver: false,
+        isRemoveBySender: false,
+        content: 'Hello my friend.');
+    TextMessage devMessage2 = TextMessage(
+        senderUid: '00000',
+        receiverUid: user.uid,
+        createAt: Timestamp.now(),
+        isRecallBySender: false,
+        isRecallByReceiver: false,
+        isRemoveBySender: false,
+        content: 'Many thanks for your choice using DLinks');
     userInbox.messageBox
       ..add(firstMessage)
       ..add(secondMessage)
       ..add(imageMessage)
       ..add(audioMessage)
       ..add(fileMessage)
-      ..add(videoMessage);
+      ..add(videoMessage)
+      ..add(devMessage1)
+      ..add(devMessage2);
     await firebaseFirestore
         .collection('Inbox')
         .doc(user.uid)
