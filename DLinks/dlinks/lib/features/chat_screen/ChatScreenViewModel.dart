@@ -15,11 +15,13 @@ import '../../data/model/Inbox.dart';
 class ChatScreenViewModel extends GetxController {
   Rx<ChatUser> chatFriend = ChatUser(uid: '').obs;
   Rx<TextEditingController> messageController = TextEditingController().obs;
+  Rx<ScrollController> scrollController = ScrollController().obs;
   Rx<Inbox> inbox = Inbox(uid: '', messageBox: []).obs;
 
   Rx<AudioPlayer> audioPlayer = AudioPlayer().obs;
 
   Future<void> initChatDialog(String senderUid) async {
+    debugPrint('Chat with $senderUid');
     chatFriend.value = (await Get.find<UserProvider>()
         .authProvider
         .value
@@ -31,6 +33,18 @@ class ChatScreenViewModel extends GetxController {
         .firebaseService
         .getAllMessagesForUser(
             Get.find<UserProvider>().userRepository.value.currentUser!.uid))!;
+
+    //filter message by other chat user
+    filterMessage(senderUid);
+  }
+
+  void filterMessage(String senderUid) {
+    inbox.value.messageBox.removeWhere((msg) => msg.senderUid != senderUid);
+  }
+
+  void scrollDown() {
+    scrollController.value
+        .jumpTo(scrollController.value.position.maxScrollExtent);
   }
 
   Widget getMessageBlock(dynamic e) {
@@ -59,7 +73,7 @@ class ChatScreenViewModel extends GetxController {
               borderRadius: BorderRadius.circular(16)),
           child: Text(
             e.content,
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(color: Colors.white, fontSize: 16),
           ),
         );
       case ImageMessage:
@@ -112,7 +126,9 @@ class ChatScreenViewModel extends GetxController {
                 barrierColor: Colors.black);
           },
           child: Container(
-              // width: Get.size.width * 0.7,
+              constraints: BoxConstraints(
+                  minWidth: Get.size.width * 0.3,
+                  maxWidth: Get.size.width * 0.7),
               margin: const EdgeInsets.symmetric(horizontal: 10),
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
@@ -173,7 +189,7 @@ class ChatScreenViewModel extends GetxController {
                 ),
                 Text(
                   audioPlayer.value.playing ? "Tap to pause" : "Tap to play",
-                  style: const TextStyle(color: Colors.white),
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
                 ),
                 const SizedBox(
                   width: 10,
@@ -258,7 +274,7 @@ class ChatScreenViewModel extends GetxController {
                   color: Colors.white,
                   child: const Text(
                     "File",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ),
                 Container(
@@ -274,9 +290,10 @@ class ChatScreenViewModel extends GetxController {
                       Text(
                         e.fileUrl,
                         style: const TextStyle(
-                            color: Colors.white,
-                            fontStyle: FontStyle.italic,
-                            decoration: TextDecoration.underline),
+                          color: Colors.white,
+                          fontStyle: FontStyle.italic,
+                          decoration: TextDecoration.underline,
+                        ),
                       ),
                     ],
                   ),

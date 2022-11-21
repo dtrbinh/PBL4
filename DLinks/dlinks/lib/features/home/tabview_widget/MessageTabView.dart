@@ -55,12 +55,16 @@ class _MessageTabViewState extends State<MessageTabView> {
               const SizedBox(
                 height: 10,
               ),
-              SingleChildScrollView(
-                child: Obx(
-                  () => Column(
-                    children: viewModel.userInbox.value
-                        .map((e) => _dialogCard(e))
-                        .toList(),
+              SizedBox(
+                height: Get.size.height - 320,
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.zero,
+                  child: Obx(
+                    () => Column(
+                      children: viewModel.userInbox.value
+                          .map((e) => _dialogCard(e))
+                          .toList(),
+                    ),
                   ),
                 ),
               ),

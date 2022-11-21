@@ -26,6 +26,12 @@ class _VideoPlayerViewState extends State<VideoPlayerView> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+    videoController.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return AspectRatio(
       aspectRatio: videoController.value.aspectRatio,

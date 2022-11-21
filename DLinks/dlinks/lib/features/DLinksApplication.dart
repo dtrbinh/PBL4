@@ -12,7 +12,7 @@ class DLinksApplication extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = Get.put(UserProvider());
+    Get.put(UserProvider());
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'DUT Links',

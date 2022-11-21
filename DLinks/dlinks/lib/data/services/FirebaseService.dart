@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dlinks/data/model/ChatUser.dart';
 import 'package:dlinks/data/model/Message.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../model/Inbox.dart';
@@ -148,7 +150,7 @@ class FirebaseService {
             'https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4');
 
     TextMessage devMessage1 = TextMessage(
-        senderUid: '00000',
+        senderUid: '11111',
         receiverUid: user.uid,
         createAt: Timestamp.now(),
         isRecallBySender: false,
@@ -156,7 +158,7 @@ class FirebaseService {
         isRemoveBySender: false,
         content: 'Hello my friend.');
     TextMessage devMessage2 = TextMessage(
-        senderUid: '00000',
+        senderUid: '11111',
         receiverUid: user.uid,
         createAt: Timestamp.now(),
         isRecallBySender: false,
@@ -234,15 +236,18 @@ class FirebaseService {
         .get()
         .then((value) async {
       // debugPrint(value.data().toString());
-      for (Message i in Inbox.fromMap(value.data()!).messageBox) {
+      for (dynamic i in Inbox.fromMap(value.data()!).messageBox) {
+        // debugPrint('Message from ${i.senderUid}');
         var j = await getChatUserByUid(i.senderUid);
         if (j != null) {
-          if (result
-              .where((element) => element.uid == j.uid)
-              .toList()
-              .isEmpty) {
+          if (result.where((element) => element.uid == j.uid).toList().isEmpty) {
+            // debugPrint('Chat with ${j.displayName}');
             result.add(j);
+          } else {
+            // debugPrint('This chat user exist.');
           }
+        } else {
+          // debugPrint('Null check.');
         }
       }
     }, onError: (error) {

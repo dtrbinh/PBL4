@@ -19,6 +19,7 @@ class _ChatScreenViewState extends State<ChatScreenView> {
   @override
   void initState() {
     viewModel.initChatDialog(widget.senderUid);
+    viewModel.scrollDown();
     super.initState();
   }
 
@@ -26,6 +27,7 @@ class _ChatScreenViewState extends State<ChatScreenView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: Obx(() => Row(
               children: [
                 CircleAvatar(
@@ -40,8 +42,6 @@ class _ChatScreenViewState extends State<ChatScreenView> {
                 Text(viewModel.chatFriend.value.displayName ?? '...'),
               ],
             )),
-        backgroundColor: Colors.white,
-        elevation: 0,
         actions: [
           IconButton(
               onPressed: () {},
@@ -56,11 +56,13 @@ class _ChatScreenViewState extends State<ChatScreenView> {
         child: Column(children: [
           Expanded(
             child: Obx(
-              () => ListView(
-                children: viewModel.inbox.value
-                    .messageBox //TODO: chỉ chọn ra những tin nhắn của người gửi có uid = senderUid tương ứng, hiện tại là tất cả tin nhắn từ những người khác nhau đều hiển thị
-                    .map((e) => _messageCard(e))
-                    .toList(),
+              () => SingleChildScrollView(
+                controller: viewModel.scrollController.value,
+                child: Column(
+                  children: viewModel.inbox.value.messageBox
+                      .map((e) => _messageCard(e))
+                      .toList(),
+                ),
               ),
             ),
           ),
@@ -104,6 +106,14 @@ class _ChatScreenViewState extends State<ChatScreenView> {
     );
   }
 
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    viewModel.audioPlayer.value.stop();
+    viewModel.audioPlayer.value.dispose();
+    super.dispose();
+  }
+
   Widget _messageCard(dynamic e) {
     bool isMe = e.senderUid != viewModel.chatFriend.value.uid;
     return Container(
@@ -116,7 +126,7 @@ class _ChatScreenViewState extends State<ChatScreenView> {
             Visibility(
               visible: !isMe,
               child: CircleAvatar(
-                radius:15,
+                radius: 15,
                 backgroundColor: Colors.grey,
                 backgroundImage: NetworkImage(viewModel
                         .chatFriend.value.photoURL ??
