@@ -17,64 +17,65 @@ import '../../data/model/ChatUser.dart';
 import '../../data/model/Inbox.dart';
 
 class ChatScreenViewModel extends GetxController {
-  StreamSubscription? messageStream;
+  Stream<DocumentSnapshot<Map<String, dynamic>>>? messageStream;
 
-  Rx<ChatUser> their = ChatUser(uid: '').obs; // who you are chatting with
+  Rx<ChatUser> their = ChatUser(uid: '').obs;
 
+  // who you are chatting with
   TextEditingController messageController = TextEditingController();
-  Rx<ScrollController> scrollController = ScrollController().obs;
-  Rx<Inbox> inbox = Inbox(uid: '', messageBox: []).obs;
+  ScrollController scrollController = ScrollController();
 
-  RxList dialog = [].obs;
+  var inbox = [].obs;
 
   Rx<AudioPlayer> audioPlayer = AudioPlayer().obs;
 
   void startStream() async {
     logWarning('Start message subscription.');
-    // messageStream = FirebaseFirestore.instance
-    //     .collection('Inbox')
-    //     .doc(their.value.uid)
-    //     .snapshots()
-    //     .listen((event) {
-    //       debugPrint(event.data().toString());
-    //   if (event.data() != null) {
-    //     inbox.value = Inbox.fromMap(event.data()!);
-    //     filterMessage();
-    //   }
-    // }, onError: (error) {
-    //   logError('----------Internal Error: $error');
-    // }, onDone: () {});
+    messageStream =
+        await CloudFirestoreService().getMessageStream(their.value.uid);
+    messageStream!.listen((event) async {
+      if (event.data() != null) {
+        logWarning('Message stream changed.');
+        inbox.value = filter(
+            Inbox.fromMap(event.data() ?? {}).messageBox,
+            Get.find<UserProvider>().userRepository.value.currentUser!.uid,
+            their.value.uid);
+        // scrollController.animateTo(scrollController.position.maxScrollExtent,
+        //     duration: Duration.zero, curve: Curves.ease);
+      }
+    });
   }
 
   void endStream() {
-    messageStream!
-        .cancel()
-        .then((value) => logWarning('Cancel message subscription.'));
+    logWarning('End message subscription.');
   }
 
-  Future<void> initChatDialog(String theirUid) async {
-    dialog.value = [];
-    debugPrint('Chat with $theirUid');
-    their.value = (await CloudFirestoreService().getChatUserByUid(theirUid))!;
-    inbox.value = (await CloudFirestoreService().getAllMessagesForUser(
-        Get.find<UserProvider>().userRepository.value.currentUser!.uid))!;
-    // startStream();
-    //filter message by other chat user
-    filterMessage();
-  }
-
-  void filterMessage() {
-    dialog.value = [];
-    for (Message i in inbox.value.messageBox) {
-      if (i.senderUid == their.value.uid || i.receiverUid == their.value.uid) {
-        dialog.value.add(i);
+  List filter(List<dynamic> list, String myUid, String theirUid) {
+    var temp = [];
+    for (Message i in list) {
+      if (i.senderUid == myUid && i.receiverUid == theirUid) {
+        temp.add(i);
+      }
+      if (i.senderUid == theirUid && i.receiverUid == myUid) {
+        temp.add(i);
       }
     }
+    return temp;
+  }
+
+  Future<void> initChatDialog(String myUid, String theirUid) async {
+    debugPrint('Chat with $theirUid');
+    their.value = (await CloudFirestoreService().getChatUserByUid(theirUid))!;
+    startStream();
+    inbox.value = (await CloudFirestoreService()
+        .getAllMessagesForCurrentDialog(myUid, theirUid))!;
   }
 
   void scrollDown() {
-    // scrollController.value
-    //     .jumpTo(scrollController.value.position.maxScrollExtent);
+    //delay 3 seconds
+    Future.delayed(const Duration(milliseconds: 500), () {
+      scrollController.jumpTo(scrollController.position.maxScrollExtent);
+    });
   }
 
   void sendMessage(dynamic content) {
@@ -83,7 +84,8 @@ class ChatScreenViewModel extends GetxController {
         if (content != '') {
           CloudFirestoreService().sendTextMessage(TextMessage(
             content: content,
-            senderUid: inbox.value.uid,
+            senderUid:
+                Get.find<UserProvider>().userRepository.value.currentUser!.uid,
             receiverUid: their.value.uid,
             createAt: Timestamp.now(),
             isRemoveBySender: false,

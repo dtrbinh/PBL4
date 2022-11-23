@@ -14,10 +14,10 @@ class ChatScreenView extends StatefulWidget {
 
 class _ChatScreenViewState extends State<ChatScreenView> {
   final viewModel = Get.put(ChatScreenViewModel());
-
+  final myUid = Get.find<UserProvider>().userRepository.value.currentUser!.uid;
   @override
   void initState() {
-    viewModel.initChatDialog(widget.theirUid);
+    viewModel.initChatDialog(myUid, widget.theirUid);
     viewModel.scrollDown();
     super.initState();
   }
@@ -54,16 +54,37 @@ class _ChatScreenViewState extends State<ChatScreenView> {
         color: Colors.white,
         child: Column(children: [
           Expanded(
-            child: Obx(
-              () => SingleChildScrollView(
-                controller: viewModel.scrollController.value,
-                child: Column(
-                  children: viewModel.dialog.value
-                      .map((e) => _messageCard(e))
-                      .toList(),
+            child: SingleChildScrollView(
+                controller: viewModel.scrollController,
+                child: Obx(
+                  () => Column(
+                    children: viewModel.inbox.value
+                        .map((e) => _messageCard(e))
+                        .toList(),
+                  ),
+                )
+                // StreamBuilder(
+                //   stream: viewModel.messageStream,
+                //   builder: (BuildContext context,
+                //       AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>>
+                //           snapshot) {
+                //     if (!snapshot.hasData) {
+                //       return const LinearProgressIndicator(color: Colors.black, backgroundColor: Colors.grey,);
+                //     }
+                //     debugPrint(snapshot.data!.data().toString());
+                //     viewModel.inbox.value =
+                //         Inbox.fromMap(snapshot.data!.data() ?? {});
+                //     viewModel.filterMessage();
+                //     return Obx(
+                //       () => Column(
+                //         children: viewModel.dialog.value
+                //             .map((e) => _messageCard(e))
+                //             .toList(),
+                //       ),
+                //     );
+                //   },
+                // )
                 ),
-              ),
-            ),
           ),
           sendBox(),
         ]),
@@ -74,12 +95,12 @@ class _ChatScreenViewState extends State<ChatScreenView> {
   Widget sendBox() {
     return Row(
       children: [
-        IconButton(onPressed: (){}, icon: Icon(Icons.add)),
+        IconButton(onPressed: () {}, icon: Icon(Icons.add)),
         Expanded(
           child: Container(
             color: Colors.white,
             height: 70,
-            padding: const EdgeInsets.symmetric( vertical: 10),
+            padding: const EdgeInsets.symmetric(vertical: 10),
             child: TextField(
               controller: viewModel.messageController,
               decoration: const InputDecoration(
@@ -93,7 +114,8 @@ class _ChatScreenViewState extends State<ChatScreenView> {
               onSubmitted: (content) {
                 viewModel.sendMessage(content);
                 viewModel.messageController.text = '';
-                Get.back(canPop: false);
+                // FocusManager.instance.primaryFocus?.unfocus();
+                viewModel.scrollDown();
               },
             ),
           ),
@@ -102,9 +124,8 @@ class _ChatScreenViewState extends State<ChatScreenView> {
           padding: EdgeInsets.zero,
           onPressed: () {
             viewModel.sendMessage(viewModel.messageController.value.text);
-            // setState((){});
             viewModel.messageController.text = '';
-            FocusManager.instance.primaryFocus?.unfocus();
+            viewModel.scrollDown();
           },
           icon: const Icon(Icons.send),
         )
@@ -115,9 +136,11 @@ class _ChatScreenViewState extends State<ChatScreenView> {
   @override
   void dispose() {
     // TODO: implement dispose
+    viewModel.messageController.dispose();
+    viewModel.scrollController.dispose();
     viewModel.audioPlayer.value.stop();
     viewModel.audioPlayer.value.dispose();
-    // viewModel.endStream();
+    viewModel.endStream();
     super.dispose();
   }
 

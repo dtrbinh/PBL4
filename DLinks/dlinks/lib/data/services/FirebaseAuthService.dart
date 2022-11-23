@@ -9,9 +9,9 @@ class FirebaseAuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn =
       GoogleSignIn(signInOption: SignInOption.standard, scopes: [
-    'email',
-    'https://www.googleapis.com/auth/user.phonenumbers.read',
-    'https://www.googleapis.com/auth/user.addresses.read'
+    // 'email',
+    // 'https://www.googleapis.com/auth/user.phonenumbers.read',
+    // 'https://www.googleapis.com/auth/user.addresses.read'
   ]);
 
   Future<User?> signInWithGoogle() async {

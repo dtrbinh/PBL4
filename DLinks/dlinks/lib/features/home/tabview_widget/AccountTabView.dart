@@ -189,6 +189,7 @@ class _AccountTabViewState extends State<AccountTabView> {
                         TextButton(
                           onPressed: () {
                             viewModel.logout();
+                            Get.deleteAll();
                           },
                           child: const Text('OK'),
                         ),

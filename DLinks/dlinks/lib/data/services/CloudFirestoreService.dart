@@ -169,25 +169,33 @@ class CloudFirestoreService {
   }
 
   // -----MESSAGES FUNCTION REGION
-  Future<Inbox?> getAllMessagesForUser(String receiverUid) async {
+  Future<List?> getAllMessagesForCurrentDialog(
+      String myUid, String theirUid) async {
     Inbox? inbox;
     await FirebaseFirestore.instance
         .collection('Inbox')
-        .doc(receiverUid)
+        .doc(myUid)
         .get()
         .then((value) {
-      inbox = Inbox.fromMap(value.data()!);
+      inbox = Inbox.fromMap(value.data() ?? {});
     });
-    return (inbox != null) ? inbox : null; // select distinct
+    var temp = [];
+    for (Message i in inbox!.messageBox) {
+      if (i.senderUid == myUid && i.receiverUid == theirUid) {
+        temp.add(i);
+      } else if (i.senderUid == theirUid && i.receiverUid == myUid) {
+        temp.add(i);
+      }
+    }
+    return temp; // select distinct
   }
 
-  Future<StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>>
-      getMessageStream(String receiverUid) async {
+  Future<Stream<DocumentSnapshot<Map<String, dynamic>>>> getMessageStream(
+      String receiverUid) async {
     return FirebaseFirestore.instance
         .collection('Inbox')
         .doc(receiverUid)
-        .snapshots()
-        .listen((event) {}, onError: (error) {}, onDone: () {});
+        .snapshots();
   }
 
   Future<List<ChatUser>> getAllChatDialog(String myUid) async {
@@ -228,7 +236,6 @@ class CloudFirestoreService {
           logError(
               '----------Internal Error: Not exist user with id ${i.senderUid}.');
         }
-
       }
     }, onError: (error) {
       logError('----------Internal Error: $error');
@@ -237,7 +244,6 @@ class CloudFirestoreService {
   }
 
   Future<bool> sendTextMessage(TextMessage txtMessage) async {
-    bool sendSuccess = false;
     try {
       //add message vào ib người gửi
       await FirebaseFirestore.instance
