@@ -1,6 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dlinks/features/chat_screen/ChatScreenView.dart';
-import 'package:dlinks/features/chat_screen/ChatScreenViewModel.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -60,11 +59,17 @@ class _MessageTabViewState extends State<MessageTabView> {
                 child: SingleChildScrollView(
                   padding: EdgeInsets.zero,
                   child: Obx(
-                    () => Column(
-                      children: viewModel.userInbox.value
-                          .map((e) => _dialogCard(e))
-                          .toList(),
-                    ),
+                    () => viewModel.isLoading.value
+                        ? const Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.black,
+                            ),
+                          )
+                        : Column(
+                            children: viewModel.userInbox.value
+                                .map((e) => _dialogCard(e))
+                                .toList(),
+                          ),
                   ),
                 ),
               ),
@@ -83,10 +88,10 @@ class _MessageTabViewState extends State<MessageTabView> {
         ));
   }
 
-  Widget _dialogCard(ChatUser sender) {
+  Widget _dialogCard(ChatUser their) {
     return GestureDetector(
       onTap: () {
-        Get.to(() => ChatScreenView(sender.uid));
+        Get.to(() => ChatScreenView(their.uid));
       },
       child: Container(
         width: MediaQuery.of(context).size.width,
@@ -112,7 +117,7 @@ class _MessageTabViewState extends State<MessageTabView> {
               decoration: BoxDecoration(
                   border: Border.all(color: Colors.black45, width: 0.5),
                   image: DecorationImage(
-                    image: CachedNetworkImageProvider(sender.photoURL!),
+                    image: CachedNetworkImageProvider(their.photoURL!),
                   ),
                   shape: BoxShape.circle),
             ),
@@ -125,7 +130,7 @@ class _MessageTabViewState extends State<MessageTabView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    sender.displayName!,
+                    their.displayName!,
                     style: const TextStyle(
                         fontWeight: FontWeight.w600, fontSize: 18),
                   ),

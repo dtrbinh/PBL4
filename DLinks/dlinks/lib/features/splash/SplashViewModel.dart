@@ -6,10 +6,10 @@ class SplashViewModel extends GetxController {
   void initAppData() async {
     await Future<void>.delayed(const Duration(milliseconds: 3000))
         .then((value) => Get.offNamed(AppRoute.signin));
-    Permission.storage.status.then((value) async {
+    await Permission.storage.status.then((value) async {
       value.isGranted ? {} : {await Permission.storage.request()};
     });
-    Permission.manageExternalStorage.status.then((value) async {
+    await Permission.manageExternalStorage.status.then((value) async {
       value.isGranted ? {} : {await Permission.storage.request()};
     });
   }

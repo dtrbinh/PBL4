@@ -1,14 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 
-import '../services/FirebaseService.dart';
-import '../services/error_manager/ErrorLogger.dart';
+import 'FirebaseAuthService.dart';
+import 'error_manager/ErrorLogger.dart';
 
-class AuthProvider {
+class AuthService {
   //singleton instance
-  AuthProvider._internal();
-  static final AuthProvider instance = AuthProvider._internal();
+  AuthService._internal();
+  static final AuthService instance = AuthService._internal();
   // ------------------
-  FirebaseService firebaseService = FirebaseService();
+  FirebaseAuthService firebaseService = FirebaseAuthService();
   Future<User?> handleSignIn() async {
     User? _user;
     try {

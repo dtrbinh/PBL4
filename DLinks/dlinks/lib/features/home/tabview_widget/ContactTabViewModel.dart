@@ -1,3 +1,4 @@
+import 'package:dlinks/data/services/CloudFirestoreService.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 
@@ -10,6 +11,6 @@ class ContactTabViewModel extends GetxController {
 
   Future<void> getContact() async {
     contacts.value =
-        await c.authProvider.value.firebaseService.getAllChatUser();
+        await CloudFirestoreService().getAllChatUser();
   }
 }

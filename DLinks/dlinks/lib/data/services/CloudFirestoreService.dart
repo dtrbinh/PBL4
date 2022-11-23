@@ -1,63 +1,14 @@
 import 'dart:async';
-import 'dart:collection';
-import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dlinks/data/model/ChatUser.dart';
-import 'package:dlinks/data/model/Message.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:get/get.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
+import '../model/ChatUser.dart';
 import '../model/Inbox.dart';
+import '../model/Message.dart';
 import 'error_manager/ErrorLogger.dart';
 
-class FirebaseService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
-  final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
-
-  Future<User?> signInWithGoogle() async {
-    try {
-      final GoogleSignInAccount? googleSignInAccount =
-          await _googleSignIn.signIn();
-      final GoogleSignInAuthentication googleSignInAuthentication =
-          await googleSignInAccount!.authentication;
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleSignInAuthentication.accessToken,
-        idToken: googleSignInAuthentication.idToken,
-      );
-      await _auth.signInWithCredential(credential);
-      var user = FirebaseAuth.instance.currentUser;
-      if (user != null) createNewAccount(user);
-      return user;
-    } on FirebaseAuthException catch (e) {
-      logError('----------Internal Error: $e');
-    }
-    return null;
-  }
-
-  Future<String?> createUserWithEmail(String email, String password) async {
-    try {
-      await _auth.createUserWithEmailAndPassword(
-          email: email, password: password);
-    } catch (e) {
-      logError('----------Internal Error: $e');
-      return e.toString();
-    }
-    return null;
-  }
-
-  Future<void> signOutFromGoogle() async {
-    try {
-      await _googleSignIn.disconnect();
-      await _auth.signOut();
-    } catch (error) {
-      logError('----------Internal Error: $error');
-    }
-  }
-
+class CloudFirestoreService {
   //-----CHAT USERS REGION
 
   Future<void> createNewAccount(User user) async {
@@ -84,7 +35,8 @@ class FirebaseService {
 
   Future<void> createChatUser(User user) async {
     ChatUser chatUser = ChatUser.fromUser(user);
-    await firebaseFirestore
+
+    await FirebaseFirestore.instance
         .collection('ChatUsers')
         .doc(chatUser.uid)
         .set(chatUser.toJson())
@@ -174,7 +126,7 @@ class FirebaseService {
       ..add(videoMessage)
       ..add(devMessage1)
       ..add(devMessage2);
-    await firebaseFirestore
+    await FirebaseFirestore.instance
         .collection('Inbox')
         .doc(user.uid)
         .set(userInbox.toJson())
@@ -215,7 +167,7 @@ class FirebaseService {
     return result;
   }
 
-  // -----MESSAGES REGION
+  // -----MESSAGES FUNCTION REGION
   Future<Inbox?> getAllMessagesForUser(String receiverUid) async {
     Inbox? inbox;
     await FirebaseFirestore.instance
@@ -228,6 +180,15 @@ class FirebaseService {
     return (inbox != null) ? inbox : null; // select distinct
   }
 
+  Future<StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>>
+      getMessageStream(String receiverUid) async {
+    return FirebaseFirestore.instance
+        .collection('Inbox')
+        .doc(receiverUid)
+        .snapshots()
+        .listen((event) {}, onError: (error) {}, onDone: () {});
+  }
+
   Future<List<ChatUser>> getAllUserChatWithMe(String receiverUid) async {
     List<ChatUser> result = [];
     await FirebaseFirestore.instance
@@ -236,11 +197,14 @@ class FirebaseService {
         .get()
         .then((value) async {
       // debugPrint(value.data().toString());
-      for (dynamic i in Inbox.fromMap(value.data()!).messageBox) {
+      for (dynamic i in Inbox.fromMap(value.data() ?? {}).messageBox) {
         // debugPrint('Message from ${i.senderUid}');
         var j = await getChatUserByUid(i.senderUid);
         if (j != null) {
-          if (result.where((element) => element.uid == j.uid).toList().isEmpty) {
+          if (result
+              .where((element) => element.uid == j.uid)
+              .toList()
+              .isEmpty) {
             // debugPrint('Chat with ${j.displayName}');
             result.add(j);
           } else {
@@ -254,5 +218,29 @@ class FirebaseService {
       logError('----------Internal Error: $error');
     });
     return result;
+  }
+
+  Future<bool> sendTextMessage(TextMessage txtMessage) async {
+    bool sendSuccess = false;
+    try {
+      //add message vào ib người gửi
+      await FirebaseFirestore.instance
+          .collection('Inbox')
+          .doc(txtMessage.senderUid)
+          .update({
+        'messageBox': FieldValue.arrayUnion([txtMessage.toJson()])
+      });
+
+      //add message vào ib người nhận
+      await FirebaseFirestore.instance
+          .collection('Inbox')
+          .doc(txtMessage.receiverUid)
+          .update({
+        'messageBox': FieldValue.arrayUnion([txtMessage.toJson()])
+      });
+    } catch (error) {
+      return false;
+    }
+    return true;
   }
 }

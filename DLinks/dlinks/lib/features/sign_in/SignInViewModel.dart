@@ -7,7 +7,7 @@ class SignInViewModel extends GetxController {
   UserProvider c = Get.find<UserProvider>();
 
   void loginGoogle() {
-    c.authProvider.value.handleSignIn().then((value) {
+    c.authService.value.handleSignIn().then((value) {
       if (value != null) {
         c.userRepository.value.currentUser = value;
         Get.offNamed(AppRoute.home);

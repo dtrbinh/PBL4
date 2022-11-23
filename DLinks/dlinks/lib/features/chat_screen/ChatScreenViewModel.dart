@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dlinks/data/model/Message.dart';
 import 'package:dlinks/data/provider/UserProvider.dart';
+import 'package:dlinks/data/services/CloudFirestoreService.dart';
 import 'package:dlinks/data/services/error_manager/ErrorLogger.dart';
 import 'package:dlinks/utils/widget/DownloadManager.dart';
 import 'package:dlinks/utils/widget/VideoPlayerView.dart';
@@ -13,38 +17,84 @@ import '../../data/model/ChatUser.dart';
 import '../../data/model/Inbox.dart';
 
 class ChatScreenViewModel extends GetxController {
-  Rx<ChatUser> chatFriend = ChatUser(uid: '').obs;
-  Rx<TextEditingController> messageController = TextEditingController().obs;
+  StreamSubscription? messageStream;
+
+  Rx<ChatUser> their = ChatUser(uid: '').obs; // who you are chatting with
+
+  TextEditingController messageController = TextEditingController();
   Rx<ScrollController> scrollController = ScrollController().obs;
   Rx<Inbox> inbox = Inbox(uid: '', messageBox: []).obs;
 
+  RxList dialog = [].obs;
+
   Rx<AudioPlayer> audioPlayer = AudioPlayer().obs;
 
-  Future<void> initChatDialog(String senderUid) async {
-    debugPrint('Chat with $senderUid');
-    chatFriend.value = (await Get.find<UserProvider>()
-        .authProvider
-        .value
-        .firebaseService
-        .getChatUserByUid(senderUid))!;
-    inbox.value = (await Get.find<UserProvider>()
-        .authProvider
-        .value
-        .firebaseService
-        .getAllMessagesForUser(
-            Get.find<UserProvider>().userRepository.value.currentUser!.uid))!;
-
-    //filter message by other chat user
-    filterMessage(senderUid);
+  void startStream() async {
+    logWarning('Start message subscription.');
+    // messageStream = FirebaseFirestore.instance
+    //     .collection('Inbox')
+    //     .doc(their.value.uid)
+    //     .snapshots()
+    //     .listen((event) {
+    //       debugPrint(event.data().toString());
+    //   if (event.data() != null) {
+    //     inbox.value = Inbox.fromMap(event.data()!);
+    //     filterMessage();
+    //   }
+    // }, onError: (error) {
+    //   logError('----------Internal Error: $error');
+    // }, onDone: () {});
   }
 
-  void filterMessage(String senderUid) {
-    inbox.value.messageBox.removeWhere((msg) => msg.senderUid != senderUid);
+  void endStream() {
+    messageStream!
+        .cancel()
+        .then((value) => logWarning('Cancel message subscription.'));
+  }
+
+  Future<void> initChatDialog(String theirUid) async {
+    dialog.value = [];
+    debugPrint('Chat with $theirUid');
+    their.value = (await CloudFirestoreService().getChatUserByUid(theirUid))!;
+    inbox.value = (await CloudFirestoreService().getAllMessagesForUser(
+        Get.find<UserProvider>().userRepository.value.currentUser!.uid))!;
+    // startStream();
+    //filter message by other chat user
+    filterMessage();
+  }
+
+  void filterMessage() {
+    dialog.value = [];
+    for (Message i in inbox.value.messageBox) {
+      if (i.senderUid == their.value.uid || i.receiverUid == their.value.uid) {
+        dialog.value.add(i);
+      }
+    }
   }
 
   void scrollDown() {
-    scrollController.value
-        .jumpTo(scrollController.value.position.maxScrollExtent);
+    // scrollController.value
+    //     .jumpTo(scrollController.value.position.maxScrollExtent);
+  }
+
+  void sendMessage(dynamic content) {
+    switch (content.runtimeType) {
+      case String:
+        if (content != '') {
+          CloudFirestoreService().sendTextMessage(TextMessage(
+            content: content,
+            senderUid: inbox.value.uid,
+            receiverUid: their.value.uid,
+            createAt: Timestamp.now(),
+            isRemoveBySender: false,
+            isRecallByReceiver: false,
+            isRecallBySender: false,
+          ));
+        }
+        break;
+      default:
+        break;
+    }
   }
 
   Widget getMessageBlock(dynamic e) {
@@ -65,7 +115,9 @@ class ChatScreenViewModel extends GetxController {
     switch (e.runtimeType) {
       case TextMessage:
         return Container(
-          width: Get.size.width * 0.7,
+          constraints: BoxConstraints(
+              maxHeight: Get.height * 0.7, maxWidth: Get.width * 0.7),
+          // width: Get.size.width * 0.7,
           margin: const EdgeInsets.symmetric(horizontal: 10),
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
@@ -73,6 +125,9 @@ class ChatScreenViewModel extends GetxController {
               borderRadius: BorderRadius.circular(16)),
           child: Text(
             e.content,
+            maxLines: 100,
+            softWrap: true,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(color: Colors.white, fontSize: 16),
           ),
         );
