@@ -1,29 +1,23 @@
-import 'package:dlinks/architecture/BaseWidget.dart';
-import 'package:dlinks/architecture/BaseWidgetModel.dart';
 import 'package:dlinks/data/constant/AppUtils.dart';
 import 'package:dlinks/data/provider/UserProvider.dart';
-import 'package:dlinks/utils/RouteManager.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
+import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 
 import 'AccountTabViewModel.dart';
 
-class AccountTabView extends BaseWidget {
-  final AccountTabViewModel model;
-
-  const AccountTabView(this.model, {Key? key}) : super(key: key);
+class AccountTabView extends StatefulWidget {
+  const AccountTabView({Key? key}) : super(key: key);
 
   @override
-  BaseWidgetState<BaseWidget, BaseWidgetModel> getWidgetState() {
-    return _AccountTabViewState();
-  }
+  State<AccountTabView> createState() => _AccountTabViewState();
 }
 
-class _AccountTabViewState
-    extends BaseWidgetState<AccountTabView, AccountTabViewModel> {
+class _AccountTabViewState extends State<AccountTabView> {
+  final viewModel = Get.put(AccountTabViewModel());
+
   @override
-  Widget getView() {
+  Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
         child: Padding(
@@ -40,11 +34,8 @@ class _AccountTabViewState
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     image: DecorationImage(
-                      image: NetworkImage(context
-                              .read<UserProvider>()
-                              .userRepository
-                              .currentUser
-                              ?.photoURL ??
+                      image: NetworkImage(viewModel
+                              .c.userRepository.value.currentUser?.photoURL ??
                           AppUtils.AVATAR_PLACEHOLDER),
                       fit: BoxFit.cover,
                     ),
@@ -55,11 +46,7 @@ class _AccountTabViewState
                 padding: const EdgeInsets.only(top: 16),
                 child: Center(
                   child: Text(
-                    context
-                        .read<UserProvider>()
-                        .userRepository
-                        .currentUser!
-                        .displayName!,
+                    viewModel.c.userRepository.value.currentUser!.displayName!,
                     style: const TextStyle(
                         fontSize: 20, fontWeight: FontWeight.bold),
                   ),
@@ -96,11 +83,7 @@ class _AccountTabViewState
                   ),
                   Flexible(
                     child: Text(
-                      context
-                              .read<UserProvider>()
-                              .userRepository
-                              .currentUser!
-                              .email ??
+                      viewModel.c.userRepository.value.currentUser!.email ??
                           'Not set',
                       style: const TextStyle(fontSize: 16),
                       maxLines: 1,
@@ -123,11 +106,7 @@ class _AccountTabViewState
                     style: TextStyle(fontSize: 16),
                   ),
                   Text(
-                    context
-                            .read<UserProvider>()
-                            .userRepository
-                            .currentUser!
-                            .phoneNumber ??
+                    viewModel.c.userRepository.value.currentUser!.phoneNumber ??
                         "Not set",
                     style: const TextStyle(fontSize: 16),
                   ),
@@ -204,7 +183,7 @@ class _AccountTabViewState
                         ),
                         TextButton(
                           onPressed: () {
-                            viewModel.logout(context);
+                            viewModel.logout();
                           },
                           child: const Text('OK'),
                         ),
@@ -231,12 +210,4 @@ class _AccountTabViewState
       ),
     );
   }
-
-  @override
-  AccountTabViewModel getViewModel() {
-    return widget.model;
-  }
-
-  @override
-  void onWidgetModelReady() {}
 }

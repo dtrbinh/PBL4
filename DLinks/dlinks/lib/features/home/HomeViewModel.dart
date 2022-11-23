@@ -1,39 +1,32 @@
-import 'package:dlinks/architecture/BaseViewModel.dart';
 import 'package:dlinks/features/home/tabview_widget/AccountTabView.dart';
-import 'package:dlinks/features/home/tabview_widget/AccountTabViewModel.dart';
 import 'package:dlinks/features/home/tabview_widget/CallTabView.dart';
 import 'package:dlinks/features/home/tabview_widget/CallTabViewModel.dart';
 import 'package:dlinks/features/home/tabview_widget/ContactTabView.dart';
-import 'package:dlinks/features/home/tabview_widget/ContactTabViewModel.dart';
 import 'package:dlinks/features/home/tabview_widget/MessageTabView.dart';
-import 'package:dlinks/features/home/tabview_widget/MessageTabViewModel.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:get/get.dart';
 
-class HomeViewModel extends BaseViewModel {
+class HomeViewModel extends GetxController {
 
-  final MessageTabViewModel messageTabViewModel = MessageTabViewModel();
   final CallTabViewModel callTabViewModel = CallTabViewModel();
-  final ContactTabViewModel contactTabViewModel = ContactTabViewModel();
-  final AccountTabViewModel accountTabViewModel = AccountTabViewModel();
 
-  int currentTab = 0;
+  RxInt currentTab = 0.obs;
   void changeTab(int index) {
-    currentTab = index;
-    notifyListeners();
+    currentTab.value = index;
   }
 
   Widget getBody() {
-    switch (currentTab) {
+    switch (currentTab.value) {
       case 0:
-        return MessageTabView(messageTabViewModel);
+        return const MessageTabView();
       case 1:
         return CallTabView(callTabViewModel);
       case 2:
-        return ContactTabView(contactTabViewModel);
+        return const ContactTabView();
       case 3:
-        return AccountTabView(accountTabViewModel);
+        return const AccountTabView();
       default:
-        return MessageTabView(messageTabViewModel);
+        return const MessageTabView();
     }
   }
 

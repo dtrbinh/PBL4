@@ -1,41 +1,44 @@
-import 'package:dlinks/architecture/BaseViewModel.dart';
 import 'package:dlinks/data/provider/UserProvider.dart';
 import 'package:dlinks/utils/RouteManager.dart';
-import 'package:provider/provider.dart';
+import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 
-class SignInViewModel extends BaseViewModel {
-  void loginGoogle(BuildContext context) {
-    context.read<UserProvider>().accountRepository.handleSignIn().then((value) {
+class SignInViewModel extends GetxController {
+  UserProvider c = Get.find<UserProvider>();
+
+  void loginGoogle() {
+    c.authService.value.handleSignIn().then((value) {
       if (value != null) {
-        context.read<UserProvider>().userRepository.currentUser = value;
-        Navigator.pushReplacementNamed(context, AppRoute.home);
+        c.userRepository.value.currentUser = value;
+        Get.offNamed(AppRoute.home);
       }
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(value != null
+      Get.snackbar(
+          'Notification',
+          value != null
               ? "Login successfully!"
-              : "Login failed, please try again."),
-          duration: const Duration(seconds: 1)));
+              : "Login failed, please try again.",
+          colorText: Colors.white,
+          backgroundColor: Colors.black,
+          duration: const Duration(seconds: 2),
+          snackPosition: SnackPosition.TOP);
     });
   }
 
-  void loginPhoneNum(BuildContext context) {
+  void loginPhoneNum() {
     //TODO
   }
 
-  void showComingSoonDialog(BuildContext context) {
-    showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-              title: const Text("Coming soon"),
-              content: const Text("This feature is coming soon!"),
-              actions: [
-                TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text("OK"))
-              ],
-            ));
+  void showComingSoonDialog() {
+    Get.dialog(AlertDialog(
+      title: const Text("Coming soon"),
+      content: const Text("This feature is coming soon!"),
+      actions: [
+        TextButton(
+            onPressed: () {
+              Get.back();
+            },
+            child: const Text("OK"))
+      ],
+    ));
   }
 }
