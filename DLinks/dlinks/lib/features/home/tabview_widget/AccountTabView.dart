@@ -1,8 +1,7 @@
 import 'package:dlinks/data/constant/AppUtils.dart';
-import 'package:dlinks/data/provider/UserProvider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 
 import 'AccountTabViewModel.dart';
 
@@ -116,18 +115,24 @@ class _AccountTabViewState extends State<AccountTabView> {
                 height: 10,
               ),
               Row(
-                children: const [
-                  Icon(Icons.location_on),
-                  SizedBox(
+                children: [
+                  const Icon(Icons.location_on),
+                  const SizedBox(
                     width: 10,
                   ),
-                  Text(
-                    'Address: ',
+                  const Text(
+                    'Last sign in: ',
                     style: TextStyle(fontSize: 16),
                   ),
                   Text(
-                    "Not set",
-                    style: TextStyle(fontSize: 16),
+                    DateFormat('kk:mm - dd/MM/yyyy').format(viewModel
+                        .c
+                        .userRepository
+                        .value
+                        .currentUser!
+                        .metadata
+                        .lastSignInTime!),
+                    style: const TextStyle(fontSize: 16),
                   ),
                 ],
               ),

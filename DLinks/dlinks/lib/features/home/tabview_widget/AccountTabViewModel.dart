@@ -12,7 +12,8 @@ class AccountTabViewModel extends GetxController {
     c.authService.value.handleSignOut().then((value) {
       value
           ? SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
-              Get.offNamedUntil(AppRoute.signin, ModalRoute.withName('/signin'));
+            Get.back();
+            Get.offAllNamed(AppRoute.signin);
             })
           : Get.showSnackbar(const GetSnackBar(
               message: 'Logout failed',

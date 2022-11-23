@@ -9,8 +9,8 @@ class MessageTabViewModel extends GetxController {
 
   Future<void> initData() async {
     userInbox.value = await CloudFirestoreService()
-        .getAllUserChatWithMe(c.userRepository.value.currentUser!.uid);
-    // userInbox.value.
+        .getAllChatDialog(c.userRepository.value.currentUser!.uid);
+    // TODO: fix send myself message
     userInbox.value.removeWhere(
         (element) => element.uid == c.userRepository.value.currentUser!.uid);
     isLoading.value = false;

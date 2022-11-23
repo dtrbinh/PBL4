@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -6,7 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../model/ChatUser.dart';
 import '../model/Inbox.dart';
 import '../model/Message.dart';
-import 'error_manager/ErrorLogger.dart';
+import '../../utils/error_manager/ErrorLogger.dart';
 
 class CloudFirestoreService {
   //-----CHAT USERS REGION
@@ -189,30 +190,45 @@ class CloudFirestoreService {
         .listen((event) {}, onError: (error) {}, onDone: () {});
   }
 
-  Future<List<ChatUser>> getAllUserChatWithMe(String receiverUid) async {
+  Future<List<ChatUser>> getAllChatDialog(String myUid) async {
     List<ChatUser> result = [];
-    await FirebaseFirestore.instance
-        .collection('Inbox')
-        .doc(receiverUid)
-        .get()
-        .then((value) async {
+    await FirebaseFirestore.instance.collection('Inbox').doc(myUid).get().then(
+        (value) async {
       // debugPrint(value.data().toString());
-      for (dynamic i in Inbox.fromMap(value.data() ?? {}).messageBox) {
+      for (Message i in Inbox.fromMap(value.data() ?? {}).messageBox) {
         // debugPrint('Message from ${i.senderUid}');
-        var j = await getChatUserByUid(i.senderUid);
-        if (j != null) {
+        var sender = await getChatUserByUid(i.senderUid);
+        if (sender != null) {
           if (result
-              .where((element) => element.uid == j.uid)
+              .where((element) => element.uid == sender.uid)
               .toList()
               .isEmpty) {
-            // debugPrint('Chat with ${j.displayName}');
-            result.add(j);
+            // logWarning('Chat with ${sender.displayName}');
+            result.add(sender);
           } else {
-            // debugPrint('This chat user exist.');
+            // logWarning('This chat user exist: ${sender.displayName}');
           }
         } else {
-          // debugPrint('Null check.');
+          logError(
+              '----------Internal Error: Not exist user with id ${i.senderUid}.');
         }
+
+        var receiver = await getChatUserByUid(i.receiverUid);
+        if (receiver != null) {
+          if (result
+              .where((element) => element.uid == receiver.uid)
+              .toList()
+              .isEmpty) {
+            logWarning('Chat with ${receiver.displayName}');
+            result.add(receiver);
+          } else {
+            // logWarning('This chat user exist: ${receiver.displayName}');
+          }
+        } else {
+          logError(
+              '----------Internal Error: Not exist user with id ${i.senderUid}.');
+        }
+
       }
     }, onError: (error) {
       logError('----------Internal Error: $error');

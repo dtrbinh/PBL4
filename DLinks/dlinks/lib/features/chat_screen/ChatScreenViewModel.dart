@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dlinks/data/model/Message.dart';
 import 'package:dlinks/data/provider/UserProvider.dart';
 import 'package:dlinks/data/services/CloudFirestoreService.dart';
-import 'package:dlinks/data/services/error_manager/ErrorLogger.dart';
+import 'package:dlinks/utils/error_manager/ErrorLogger.dart';
 import 'package:dlinks/utils/widget/DownloadManager.dart';
 import 'package:dlinks/utils/widget/VideoPlayerView.dart';
 import 'package:flutter/material.dart';

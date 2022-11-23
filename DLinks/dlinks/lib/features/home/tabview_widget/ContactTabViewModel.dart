@@ -12,5 +12,7 @@ class ContactTabViewModel extends GetxController {
   Future<void> getContact() async {
     contacts.value =
         await CloudFirestoreService().getAllChatUser();
+    contacts.value.removeWhere(
+        (element) => element.uid == c.userRepository.value.currentUser!.uid);
   }
 }

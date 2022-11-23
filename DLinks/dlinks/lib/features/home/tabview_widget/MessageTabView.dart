@@ -26,63 +26,66 @@ class _MessageTabViewState extends State<MessageTabView> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Text('DLinks'),
+          title: const Text(
+            'DLinks',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+          ),
         ),
         body: Container(
           color: Colors.white,
           width: MediaQuery.of(context).size.width,
           height: MediaQuery.of(context).size.height,
-          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextFormField(
-                decoration: InputDecoration(
-                    hintText: "Search...",
-                    border: OutlineInputBorder(
-                        borderSide:
-                            const BorderSide(color: Colors.black45, width: 1),
-                        borderRadius: BorderRadius.circular(16))),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      height: 60,
+                      child: TextFormField(
+                        decoration: InputDecoration(
+                            hintText: "Search...",
+                            border: OutlineInputBorder(
+                                borderSide: const BorderSide(
+                                    color: Colors.black, width: 1),
+                                borderRadius: BorderRadius.circular(8))),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    const Text(
+                      "Your Messages",
+                      style: TextStyle(fontSize: 20),
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(
-                height: 10,
-              ),
-              const Text(
-                "Your Messages",
-                style: TextStyle(fontSize: 20),
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              SizedBox(
-                height: Get.size.height - 320,
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.zero,
-                  child: Obx(
-                    () => viewModel.isLoading.value
-                        ? const Center(
-                            child: CircularProgressIndicator(
-                              color: Colors.black,
-                            ),
-                          )
-                        : Column(
-                            children: viewModel.userInbox.value
-                                .map((e) => _dialogCard(e))
-                                .toList(),
-                          ),
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    viewModel.isLoading.value = true;
+                    await viewModel.initData();
+                  },
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.zero,
+                    child: Obx(
+                      () => Column(
+                        children: viewModel.userInbox.value
+                            .map((e) => _dialogCard(e))
+                            .toList(),
+                      ),
+                    ),
                   ),
                 ),
               ),
-              // Expanded(
-              //   child: StreamBuilder(
-              //       initialData: null,
-              //       stream:,
-              //       builder: (context, snapshot) {
-              //         return SingleChildScrollView(
-              //           child: ListView.separated(itemBuilder: itemBuilder, separatorBuilder: separatorBuilder, itemCount: itemCount),
-              //         );
-              //       }),
-              // ),
             ],
           ),
         ));
@@ -97,14 +100,14 @@ class _MessageTabViewState extends State<MessageTabView> {
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height / 12,
         padding: const EdgeInsets.all(8.0),
-        margin: const EdgeInsets.only(bottom: 16),
+        margin: const EdgeInsets.only(left: 16, right: 16, top: 16),
         decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.black45, width: 1),
+            borderRadius: BorderRadius.circular(8),
+            // border: Border.all(color: Colors.black45, width: 1),
             boxShadow: const [
               BoxShadow(
                 color: Colors.black12,
-                blurRadius: 10,
+                blurRadius: 5,
               )
             ],
             color: Colors.white),

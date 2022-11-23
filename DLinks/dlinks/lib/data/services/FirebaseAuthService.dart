@@ -3,11 +3,16 @@ import 'package:dlinks/data/services/CloudFirestoreService.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-import 'error_manager/ErrorLogger.dart';
+import '../../utils/error_manager/ErrorLogger.dart';
 
 class FirebaseAuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn =
+      GoogleSignIn(signInOption: SignInOption.standard, scopes: [
+    'email',
+    'https://www.googleapis.com/auth/user.phonenumbers.read',
+    'https://www.googleapis.com/auth/user.addresses.read'
+  ]);
 
   Future<User?> signInWithGoogle() async {
     try {
@@ -48,6 +53,4 @@ class FirebaseAuthService {
       logError('----------Internal Error: $error');
     }
   }
-
-
 }

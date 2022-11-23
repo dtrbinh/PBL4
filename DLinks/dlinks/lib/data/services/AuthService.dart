@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'FirebaseAuthService.dart';
-import 'error_manager/ErrorLogger.dart';
+import '../../utils/error_manager/ErrorLogger.dart';
 
 class AuthService {
   //singleton instance
