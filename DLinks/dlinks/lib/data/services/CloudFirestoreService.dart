@@ -1,12 +1,18 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../model/AudioMessage.dart';
 import '../model/ChatUser.dart';
+import '../model/FileMessage.dart';
+import '../model/ImageMessage.dart';
 import '../model/Inbox.dart';
 import '../model/Message.dart';
-import 'error_manager/ErrorLogger.dart';
+import '../../utils/error_manager/ErrorLogger.dart';
+import '../model/TextMessage.dart';
+import '../model/VideoMessage.dart';
 
 class CloudFirestoreService {
   //-----CHAT USERS REGION
@@ -149,7 +155,9 @@ class CloudFirestoreService {
     return result;
   }
 
-  List<ChatUser>? searchChatUserByKeyWord(String keyword) {}
+  List<ChatUser>? searchChatUserByKeyWord(String keyword) {
+
+  }
 
   Future<ChatUser?> getChatUserByUid(String uid) async {
     ChatUser? result;
@@ -168,60 +176,91 @@ class CloudFirestoreService {
   }
 
   // -----MESSAGES FUNCTION REGION
-  Future<Inbox?> getAllMessagesForUser(String receiverUid) async {
+  Future<List?> getAllMessagesForCurrentDialog(
+      String myUid, String theirUid) async {
     Inbox? inbox;
     await FirebaseFirestore.instance
         .collection('Inbox')
-        .doc(receiverUid)
+        .doc(myUid)
         .get()
         .then((value) {
-      inbox = Inbox.fromMap(value.data()!);
+      inbox = Inbox.fromMap(value.data() ?? {});
     });
-    return (inbox != null) ? inbox : null; // select distinct
+    var temp = [];
+    for (Message i in inbox!.messageBox) {
+      if (i.senderUid == myUid && i.receiverUid == theirUid) {
+        temp.add(i);
+      } else if (i.senderUid == theirUid && i.receiverUid == myUid) {
+        temp.add(i);
+      }
+    }
+    return temp; // select distinct
   }
 
-  Future<StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>>
-      getMessageStream(String receiverUid) async {
+  Future<Stream<DocumentSnapshot<Map<String, dynamic>>>> getMessageStream(
+      String myUid) async {
     return FirebaseFirestore.instance
         .collection('Inbox')
-        .doc(receiverUid)
-        .snapshots()
-        .listen((event) {}, onError: (error) {}, onDone: () {});
+        .doc(myUid)
+        .snapshots();
   }
 
-  Future<List<ChatUser>> getAllUserChatWithMe(String receiverUid) async {
+  Future<List<ChatUser>> getAllChatDialog(String myUid) async {
     List<ChatUser> result = [];
+    Inbox? inbox;
     await FirebaseFirestore.instance
         .collection('Inbox')
-        .doc(receiverUid)
+        .doc(myUid)
         .get()
-        .then((value) async {
-      // debugPrint(value.data().toString());
-      for (dynamic i in Inbox.fromMap(value.data() ?? {}).messageBox) {
-        // debugPrint('Message from ${i.senderUid}');
-        var j = await getChatUserByUid(i.senderUid);
-        if (j != null) {
-          if (result
-              .where((element) => element.uid == j.uid)
-              .toList()
-              .isEmpty) {
-            // debugPrint('Chat with ${j.displayName}');
-            result.add(j);
-          } else {
-            // debugPrint('This chat user exist.');
-          }
-        } else {
-          // debugPrint('Null check.');
+        .then((value) {
+      inbox = Inbox.fromMap(value.data() ?? {});
+    });
+    for (Message i in inbox!.messageBox) {
+      if (i.senderUid == myUid) {
+        ChatUser? temp = await getChatUserByUid(i.receiverUid);
+        if (temp != null) {
+          result.add(temp);
+        }
+      } else if (i.receiverUid == myUid) {
+        ChatUser? temp = await getChatUserByUid(i.senderUid);
+        if (temp != null) {
+          result.add(temp);
         }
       }
-    }, onError: (error) {
-      logError('----------Internal Error: $error');
-    });
+    }
+    // select distinct
+    for (int i = 0; i < result.length; i++) {
+      for (int j = i + 1; j < result.length; j++) {
+        if (result[i].uid == result[j].uid) {
+          result.removeAt(j);
+          j--;
+        }
+      }
+    }
     return result;
   }
 
+  Future<Message?> getLastestMessage(String myUid, String theirUid) async {
+    Inbox? inbox;
+    await FirebaseFirestore.instance
+        .collection('Inbox')
+        .doc(myUid)
+        .get()
+        .then((value) {
+      inbox = Inbox.fromMap(value.data() ?? {});
+    });
+    Message? result;
+    for (Message i in inbox!.messageBox) {
+      if (i.senderUid == myUid && i.receiverUid == theirUid) {
+        result = i;
+      } else if (i.senderUid == theirUid && i.receiverUid == myUid) {
+        result = i;
+      }
+    }
+    return result ?? null;
+  }
+
   Future<bool> sendTextMessage(TextMessage txtMessage) async {
-    bool sendSuccess = false;
     try {
       //add message vào ib người gửi
       await FirebaseFirestore.instance

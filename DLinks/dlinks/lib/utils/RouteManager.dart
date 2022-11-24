@@ -3,7 +3,8 @@ import 'package:dlinks/features/sign_in/SignInView.dart';
 import 'package:dlinks/features/splash/SplashView.dart';
 import 'package:flutter/material.dart';
 
-import '../data/services/error_manager/RouteUndefined.dart';
+import 'error_manager/RouteUndefined.dart';
+
 
 class AppRoute {
   static const String splash = '/';

@@ -1,12 +1,16 @@
+import 'package:get/get.dart';
 
-import 'package:firebase_auth/firebase_auth.dart';
+import '../provider/UserProvider.dart';
+import '../services/AuthService.dart';
 
-class UserRepository{
-  UserRepository._internal();
-  static final UserRepository instance = UserRepository._internal();
-// ---------------
-  User? currentUser;
-  void logoutCurrentUser() {
-    currentUser = null;
+class UserRepository extends GetxController {
+  final Rx<UserProvider> userProvider = UserProvider.instance.obs;
+
+  final Rx<AuthService> authService = AuthService.instance.obs;
+
+  //reset all data
+  void reset() {
+    userProvider.value = UserProvider.instance;
+    authService.value = AuthService.instance;
   }
 }

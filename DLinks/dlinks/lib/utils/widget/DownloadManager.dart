@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
 
-import 'package:dlinks/data/services/error_manager/ErrorLogger.dart';
+import 'package:dlinks/utils/error_manager/ErrorLogger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:get/get.dart';

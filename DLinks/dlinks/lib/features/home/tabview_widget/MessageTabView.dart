@@ -1,9 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dlinks/data/services/CloudFirestoreService.dart';
 import 'package:dlinks/features/chat_screen/ChatScreenView.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../data/model/ChatUser.dart';
+import '../../../data/model/Message.dart';
 import 'MessageTabViewModel.dart';
 
 class MessageTabView extends StatefulWidget {
@@ -26,63 +28,68 @@ class _MessageTabViewState extends State<MessageTabView> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Text('DLinks'),
+          title: const Text(
+            'DLinks',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+          ),
         ),
         body: Container(
           color: Colors.white,
           width: MediaQuery.of(context).size.width,
           height: MediaQuery.of(context).size.height,
-          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextFormField(
-                decoration: InputDecoration(
-                    hintText: "Search...",
-                    border: OutlineInputBorder(
-                        borderSide:
-                            const BorderSide(color: Colors.black45, width: 1),
-                        borderRadius: BorderRadius.circular(16))),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      height: 60,
+                      child: TextFormField(
+                        decoration: InputDecoration(
+                            hintText: "Search...",
+                            border: OutlineInputBorder(
+                                borderSide: const BorderSide(
+                                    color: Colors.black, width: 1),
+                                borderRadius: BorderRadius.circular(8))),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    const Text(
+                      "Your Messages",
+                      style: TextStyle(fontSize: 20),
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(
-                height: 10,
-              ),
-              const Text(
-                "Your Messages",
-                style: TextStyle(fontSize: 20),
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              SizedBox(
-                height: Get.size.height - 320,
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.zero,
-                  child: Obx(
-                    () => viewModel.isLoading.value
-                        ? const Center(
-                            child: CircularProgressIndicator(
-                              color: Colors.black,
-                            ),
-                          )
-                        : Column(
-                            children: viewModel.userInbox.value
-                                .map((e) => _dialogCard(e))
-                                .toList(),
-                          ),
+              Expanded(
+                child: RefreshIndicator(
+                  backgroundColor: Colors.black,
+                  color: Colors.white,
+                  onRefresh: () async {
+                    viewModel.isLoading.value = true;
+                    await viewModel.initData();
+                  },
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.zero,
+                    child: Obx(
+                      () => Column(
+                        children: viewModel.userInbox.value
+                            .map((e) => _dialogCard(e))
+                            .toList(),
+                      ),
+                    ),
                   ),
                 ),
               ),
-              // Expanded(
-              //   child: StreamBuilder(
-              //       initialData: null,
-              //       stream:,
-              //       builder: (context, snapshot) {
-              //         return SingleChildScrollView(
-              //           child: ListView.separated(itemBuilder: itemBuilder, separatorBuilder: separatorBuilder, itemCount: itemCount),
-              //         );
-              //       }),
-              // ),
             ],
           ),
         ));
@@ -97,14 +104,14 @@ class _MessageTabViewState extends State<MessageTabView> {
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height / 12,
         padding: const EdgeInsets.all(8.0),
-        margin: const EdgeInsets.only(bottom: 16),
+        margin: const EdgeInsets.only(left: 16, right: 16, top: 16),
         decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.black45, width: 1),
+            borderRadius: BorderRadius.circular(8),
+            // border: Border.all(color: Colors.black45, width: 1),
             boxShadow: const [
               BoxShadow(
                 color: Colors.black12,
-                blurRadius: 10,
+                blurRadius: 5,
               )
             ],
             color: Colors.white),
@@ -134,13 +141,35 @@ class _MessageTabViewState extends State<MessageTabView> {
                     style: const TextStyle(
                         fontWeight: FontWeight.w600, fontSize: 18),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.only(right: 10.0),
-                    child: Text(
-                      "Welcome to DLinks an application for sending message with your friend.",
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                      softWrap: false,
+                  Padding(
+                    padding: const EdgeInsets.only(right: 10.0),
+                    child: FutureBuilder(
+                      future: CloudFirestoreService().getLastestMessage(
+                          viewModel.c.userProvider.value.currentUser!.uid,
+                          their.uid),
+                      builder: (context, msgSnapshot) {
+                        if (msgSnapshot.hasData) {
+                          var msg = msgSnapshot.data as Message;
+                          return FutureBuilder(
+                              future: CloudFirestoreService()
+                                  .getChatUserByUid(msg.senderUid),
+                              builder: (context, userSnapshot) {
+                                if (userSnapshot.hasData) {
+                                  var user = userSnapshot.data as ChatUser;
+                                  return Text(
+                                    "${user.displayName!}: ${msgSnapshot.data}",
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 14),
+                                    overflow: TextOverflow.ellipsis,
+                                  );
+                                }
+                                return const Text("Loading...");
+                              });
+                        } else {
+                          return const SizedBox.shrink();
+                        }
+                      },
                     ),
                   ),
                 ],

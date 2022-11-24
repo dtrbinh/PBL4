@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class ChatUser {
@@ -9,12 +10,20 @@ class ChatUser {
   String? displayName;
   String? photoURL;
 
-  ChatUser(
-      {required this.uid,
-      this.phoneNumber,
-      this.email,
-      this.displayName,
-      this.photoURL});
+  bool? status;
+  Timestamp? lastSeen;
+  Timestamp? createdAt;
+
+  ChatUser({
+    required this.uid,
+    this.phoneNumber,
+    this.email,
+    this.displayName,
+    this.photoURL,
+    this.status,
+    this.lastSeen,
+    this.createdAt,
+  });
 
   static ChatUser fromUser(User user) {
     return ChatUser(
@@ -22,7 +31,11 @@ class ChatUser {
         phoneNumber: user.phoneNumber,
         email: user.email,
         displayName: user.displayName,
-        photoURL: user.photoURL);
+        photoURL: user.photoURL,
+        status: false,
+        lastSeen: Timestamp.now(),
+        createdAt: Timestamp.now()
+    );
   }
 
   Map<String, dynamic> toJson() {
@@ -32,6 +45,9 @@ class ChatUser {
       "email": email,
       "displayName": displayName,
       "photoURL": photoURL,
+      "status": status,
+      "lastSeen": lastSeen,
+      "createdAt": createdAt,
     };
   }
 
@@ -43,5 +59,9 @@ class ChatUser {
         phoneNumber: json["phoneNumber"],
         displayName: json["displayName"],
         email: json["email"],
+        status: json["status"],
+        lastSeen: json["lastSeen"],
+        createdAt: json["createdAt"],
       );
 }
+
