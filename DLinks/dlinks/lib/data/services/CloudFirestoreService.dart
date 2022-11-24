@@ -198,10 +198,10 @@ class CloudFirestoreService {
   }
 
   Future<Stream<DocumentSnapshot<Map<String, dynamic>>>> getMessageStream(
-      String receiverUid) async {
+      String myUid) async {
     return FirebaseFirestore.instance
         .collection('Inbox')
-        .doc(receiverUid)
+        .doc(myUid)
         .snapshots();
   }
 

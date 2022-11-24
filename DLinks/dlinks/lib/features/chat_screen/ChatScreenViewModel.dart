@@ -34,8 +34,8 @@ class ChatScreenViewModel extends GetxController {
 
   void startStream() async {
     logWarning('Start message subscription.');
-    messageStream =
-        await CloudFirestoreService().getMessageStream(their.value.uid);
+    messageStream = await CloudFirestoreService().getMessageStream(
+        Get.find<UserRepository>().userProvider.value.currentUser!.uid); //myUid
     messageStream!.listen((event) async {
       if (event.data() != null) {
         logWarning('Message stream changed.');
@@ -63,9 +63,10 @@ class ChatScreenViewModel extends GetxController {
   Future<void> initChatDialog(String myUid, String theirUid) async {
     debugPrint('$myUid chat with $theirUid');
     their.value = (await CloudFirestoreService().getChatUserByUid(theirUid))!;
-    startStream();
+    //stream listen under get message for dialog -> merge 2 message inbox for 2 user
     inbox.value = (await CloudFirestoreService()
         .getAllMessagesForCurrentDialog(myUid, theirUid))!;
+    startStream();
   }
 
   void sendMessage(dynamic content) {
