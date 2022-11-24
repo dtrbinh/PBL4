@@ -1,6 +1,6 @@
 // ignore_for_file: file_names
 
-import 'package:dlinks/data/provider/UserProvider.dart';
+import 'package:dlinks/data/repository/UserRepository.dart';
 import 'package:dlinks/utils/RouteManager.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -10,11 +10,10 @@ class DLinksApplication extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Get.create(() => UserProvider());
-    // Get.put(UserProvider());
+    Get.put(UserRepository());
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'DUT Links',
+      title: 'DLinks',
       theme: ThemeData(
         brightness: Brightness.light,
         fontFamily: 'Nunito',

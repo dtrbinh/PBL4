@@ -1,4 +1,5 @@
 import 'package:dlinks/data/constant/AppUtils.dart';
+import 'package:dlinks/data/repository/UserRepository.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -34,7 +35,7 @@ class _AccountTabViewState extends State<AccountTabView> {
                     shape: BoxShape.circle,
                     image: DecorationImage(
                       image: NetworkImage(viewModel
-                              .c.userRepository.value.currentUser?.photoURL ??
+                              .c.userProvider.value.currentUser?.photoURL ??
                           AppUtils.AVATAR_PLACEHOLDER),
                       fit: BoxFit.cover,
                     ),
@@ -45,7 +46,7 @@ class _AccountTabViewState extends State<AccountTabView> {
                 padding: const EdgeInsets.only(top: 16),
                 child: Center(
                   child: Text(
-                    viewModel.c.userRepository.value.currentUser!.displayName!,
+                    viewModel.c.userProvider.value.currentUser!.displayName!,
                     style: const TextStyle(
                         fontSize: 20, fontWeight: FontWeight.bold),
                   ),
@@ -82,7 +83,7 @@ class _AccountTabViewState extends State<AccountTabView> {
                   ),
                   Flexible(
                     child: Text(
-                      viewModel.c.userRepository.value.currentUser!.email ??
+                      viewModel.c.userProvider.value.currentUser!.email ??
                           'Not set',
                       style: const TextStyle(fontSize: 16),
                       maxLines: 1,
@@ -105,7 +106,7 @@ class _AccountTabViewState extends State<AccountTabView> {
                     style: TextStyle(fontSize: 16),
                   ),
                   Text(
-                    viewModel.c.userRepository.value.currentUser!.phoneNumber ??
+                    viewModel.c.userProvider.value.currentUser!.phoneNumber ??
                         "Not set",
                     style: const TextStyle(fontSize: 16),
                   ),
@@ -127,7 +128,7 @@ class _AccountTabViewState extends State<AccountTabView> {
                   Text(
                     DateFormat('kk:mm - dd/MM/yyyy').format(viewModel
                         .c
-                        .userRepository
+                        .userProvider
                         .value
                         .currentUser!
                         .metadata
@@ -189,7 +190,8 @@ class _AccountTabViewState extends State<AccountTabView> {
                         TextButton(
                           onPressed: () {
                             viewModel.logout();
-                            Get.deleteAll();
+                            // Get.find<UserProvider>().reset();
+                            // Get.deleteAll();
                           },
                           child: const Text('OK'),
                         ),

@@ -1,15 +1,15 @@
-import 'package:dlinks/data/provider/UserProvider.dart';
+import 'package:dlinks/data/repository/UserRepository.dart';
 import 'package:dlinks/utils/RouteManager.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 
 class SignInViewModel extends GetxController {
-  UserProvider c = Get.find<UserProvider>();
+  UserRepository c = Get.find<UserRepository>();
 
   void loginGoogle() {
     c.authService.value.handleSignIn().then((value) {
       if (value != null) {
-        c.userRepository.value.currentUser = value;
+        c.userProvider.value.currentUser = value;
         Get.offNamed(AppRoute.home);
       }
       Get.snackbar(

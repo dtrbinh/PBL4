@@ -1,4 +1,4 @@
-import 'package:dlinks/data/provider/UserProvider.dart';
+import 'package:dlinks/data/repository/UserRepository.dart';
 import 'package:dlinks/features/chat_screen/ChatScreenViewModel.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -14,7 +14,7 @@ class ChatScreenView extends StatefulWidget {
 
 class _ChatScreenViewState extends State<ChatScreenView> {
   final viewModel = Get.put(ChatScreenViewModel());
-  final myUid = Get.find<UserProvider>().userRepository.value.currentUser!.uid;
+  final myUid = Get.find<UserRepository>().userProvider.value.currentUser!.uid;
 
   @override
   void initState() {
@@ -190,8 +190,8 @@ class _ChatScreenViewState extends State<ChatScreenView> {
                 child: CircleAvatar(
                   radius: 15,
                   backgroundColor: Colors.grey,
-                  backgroundImage: NetworkImage(Get.find<UserProvider>()
-                      .userRepository
+                  backgroundImage: NetworkImage(Get.find<UserRepository>()
+                      .userProvider
                       .value
                       .currentUser!
                       .photoURL!),

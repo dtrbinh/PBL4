@@ -1,14 +1,14 @@
-import 'package:dlinks/data/provider/UserProvider.dart';
+import 'package:dlinks/data/repository/UserRepository.dart';
 import 'package:dlinks/utils/RouteManager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 
 class AccountTabViewModel extends GetxController {
-  UserProvider c = Get.find<UserProvider>();
+  UserRepository c = Get.find<UserRepository>();
 
   Future<void> logout() async {
-    c.userRepository.value.logoutCurrentUser();
+    c.userProvider.value.logoutCurrentUser();
     c.authService.value.handleSignOut().then((value) {
       value
           ? SchedulerBinding.instance.addPostFrameCallback((timeStamp) {

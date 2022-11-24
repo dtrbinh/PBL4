@@ -1,6 +1,10 @@
 import 'dart:convert';
 
-import 'package:dlinks/data/model/Message.dart';
+import 'AudioMessage.dart';
+import 'FileMessage.dart';
+import 'ImageMessage.dart';
+import 'TextMessage.dart';
+import 'VideoMessage.dart';
 
 class Inbox {
   Inbox({

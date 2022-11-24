@@ -1,9 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dlinks/data/services/CloudFirestoreService.dart';
 import 'package:dlinks/features/chat_screen/ChatScreenView.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../data/model/ChatUser.dart';
+import '../../../data/model/Message.dart';
 import 'MessageTabViewModel.dart';
 
 class MessageTabView extends StatefulWidget {
@@ -69,6 +71,8 @@ class _MessageTabViewState extends State<MessageTabView> {
               ),
               Expanded(
                 child: RefreshIndicator(
+                  backgroundColor: Colors.black,
+                  color: Colors.white,
                   onRefresh: () async {
                     viewModel.isLoading.value = true;
                     await viewModel.initData();
@@ -137,13 +141,35 @@ class _MessageTabViewState extends State<MessageTabView> {
                     style: const TextStyle(
                         fontWeight: FontWeight.w600, fontSize: 18),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.only(right: 10.0),
-                    child: Text(
-                      "Welcome to DLinks an application for sending message with your friend.",
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                      softWrap: false,
+                  Padding(
+                    padding: const EdgeInsets.only(right: 10.0),
+                    child: FutureBuilder(
+                      future: CloudFirestoreService().getLastestMessage(
+                          viewModel.c.userProvider.value.currentUser!.uid,
+                          their.uid),
+                      builder: (context, msgSnapshot) {
+                        if (msgSnapshot.hasData) {
+                          var msg = msgSnapshot.data as Message;
+                          return FutureBuilder(
+                              future: CloudFirestoreService()
+                                  .getChatUserByUid(msg.senderUid),
+                              builder: (context, userSnapshot) {
+                                if (userSnapshot.hasData) {
+                                  var user = userSnapshot.data as ChatUser;
+                                  return Text(
+                                    "${user.displayName!}: ${msgSnapshot.data}",
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 14),
+                                    overflow: TextOverflow.ellipsis,
+                                  );
+                                }
+                                return const Text("Loading...");
+                              });
+                        } else {
+                          return const SizedBox.shrink();
+                        }
+                      },
                     ),
                   ),
                 ],

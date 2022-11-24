@@ -2,10 +2,10 @@ import 'package:dlinks/data/services/CloudFirestoreService.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 
-import '../../../data/provider/UserProvider.dart';
+import '../../../data/repository/UserRepository.dart';
 
 class ContactTabViewModel extends GetxController {
-  final UserProvider c = Get.find<UserProvider>();
+  final UserRepository c = Get.find<UserRepository>();
   Rx<TextEditingController> textEditingController = TextEditingController().obs;
   RxList contacts = [].obs;
 
@@ -13,6 +13,6 @@ class ContactTabViewModel extends GetxController {
     contacts.value =
         await CloudFirestoreService().getAllChatUser();
     contacts.value.removeWhere(
-        (element) => element.uid == c.userRepository.value.currentUser!.uid);
+        (element) => element.uid == c.userProvider.value.currentUser!.uid);
   }
 }

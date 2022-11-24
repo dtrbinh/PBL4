@@ -4,10 +4,15 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../model/AudioMessage.dart';
 import '../model/ChatUser.dart';
+import '../model/FileMessage.dart';
+import '../model/ImageMessage.dart';
 import '../model/Inbox.dart';
 import '../model/Message.dart';
 import '../../utils/error_manager/ErrorLogger.dart';
+import '../model/TextMessage.dart';
+import '../model/VideoMessage.dart';
 
 class CloudFirestoreService {
   //-----CHAT USERS REGION
@@ -150,7 +155,9 @@ class CloudFirestoreService {
     return result;
   }
 
-  List<ChatUser>? searchChatUserByKeyWord(String keyword) {}
+  List<ChatUser>? searchChatUserByKeyWord(String keyword) {
+
+  }
 
   Future<ChatUser?> getChatUserByUid(String uid) async {
     ChatUser? result;
@@ -200,47 +207,57 @@ class CloudFirestoreService {
 
   Future<List<ChatUser>> getAllChatDialog(String myUid) async {
     List<ChatUser> result = [];
-    await FirebaseFirestore.instance.collection('Inbox').doc(myUid).get().then(
-        (value) async {
-      // debugPrint(value.data().toString());
-      for (Message i in Inbox.fromMap(value.data() ?? {}).messageBox) {
-        // debugPrint('Message from ${i.senderUid}');
-        var sender = await getChatUserByUid(i.senderUid);
-        if (sender != null) {
-          if (result
-              .where((element) => element.uid == sender.uid)
-              .toList()
-              .isEmpty) {
-            // logWarning('Chat with ${sender.displayName}');
-            result.add(sender);
-          } else {
-            // logWarning('This chat user exist: ${sender.displayName}');
-          }
-        } else {
-          logError(
-              '----------Internal Error: Not exist user with id ${i.senderUid}.');
+    Inbox? inbox;
+    await FirebaseFirestore.instance
+        .collection('Inbox')
+        .doc(myUid)
+        .get()
+        .then((value) {
+      inbox = Inbox.fromMap(value.data() ?? {});
+    });
+    for (Message i in inbox!.messageBox) {
+      if (i.senderUid == myUid) {
+        ChatUser? temp = await getChatUserByUid(i.receiverUid);
+        if (temp != null) {
+          result.add(temp);
         }
-
-        var receiver = await getChatUserByUid(i.receiverUid);
-        if (receiver != null) {
-          if (result
-              .where((element) => element.uid == receiver.uid)
-              .toList()
-              .isEmpty) {
-            logWarning('Chat with ${receiver.displayName}');
-            result.add(receiver);
-          } else {
-            // logWarning('This chat user exist: ${receiver.displayName}');
-          }
-        } else {
-          logError(
-              '----------Internal Error: Not exist user with id ${i.senderUid}.');
+      } else if (i.receiverUid == myUid) {
+        ChatUser? temp = await getChatUserByUid(i.senderUid);
+        if (temp != null) {
+          result.add(temp);
         }
       }
-    }, onError: (error) {
-      logError('----------Internal Error: $error');
-    });
+    }
+    // select distinct
+    for (int i = 0; i < result.length; i++) {
+      for (int j = i + 1; j < result.length; j++) {
+        if (result[i].uid == result[j].uid) {
+          result.removeAt(j);
+          j--;
+        }
+      }
+    }
     return result;
+  }
+
+  Future<Message?> getLastestMessage(String myUid, String theirUid) async {
+    Inbox? inbox;
+    await FirebaseFirestore.instance
+        .collection('Inbox')
+        .doc(myUid)
+        .get()
+        .then((value) {
+      inbox = Inbox.fromMap(value.data() ?? {});
+    });
+    Message? result;
+    for (Message i in inbox!.messageBox) {
+      if (i.senderUid == myUid && i.receiverUid == theirUid) {
+        result = i;
+      } else if (i.senderUid == theirUid && i.receiverUid == myUid) {
+        result = i;
+      }
+    }
+    return result ?? null;
   }
 
   Future<bool> sendTextMessage(TextMessage txtMessage) async {

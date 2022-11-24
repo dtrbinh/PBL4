@@ -8,10 +8,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await FlutterDownloader.initialize(
-      debug: true, // optional: set to false to disable printing logs to console (default: true)
+      debug: false, // optional: set to false to disable printing logs to console (default: true)
       ignoreSsl: true // option: set to false to disable working with http links (default: false)
   );
   SystemChrome.setPreferredOrientations(
       [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+
   runApp(const DLinksApplication());
 }

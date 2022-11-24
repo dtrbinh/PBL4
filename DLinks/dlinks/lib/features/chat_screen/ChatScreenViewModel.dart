@@ -3,30 +3,33 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dlinks/data/model/Message.dart';
-import 'package:dlinks/data/provider/UserProvider.dart';
+import 'package:dlinks/data/repository/UserRepository.dart';
 import 'package:dlinks/data/services/CloudFirestoreService.dart';
+import 'package:dlinks/features/home/tabview_widget/MessageTabViewModel.dart';
 import 'package:dlinks/utils/error_manager/ErrorLogger.dart';
 import 'package:dlinks/utils/widget/DownloadManager.dart';
 import 'package:dlinks/utils/widget/VideoPlayerView.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
 
+import '../../data/model/AudioMessage.dart';
 import '../../data/model/ChatUser.dart';
+import '../../data/model/FileMessage.dart';
+import '../../data/model/ImageMessage.dart';
 import '../../data/model/Inbox.dart';
+import '../../data/model/TextMessage.dart';
+import '../../data/model/VideoMessage.dart';
 
 class ChatScreenViewModel extends GetxController {
   Stream<DocumentSnapshot<Map<String, dynamic>>>? messageStream;
 
   Rx<ChatUser> their = ChatUser(uid: '').obs;
-
-  // who you are chatting with
   TextEditingController messageController = TextEditingController();
   ScrollController scrollController = ScrollController();
-
   var inbox = [].obs;
-
   Rx<AudioPlayer> audioPlayer = AudioPlayer().obs;
 
   void startStream() async {
@@ -36,11 +39,19 @@ class ChatScreenViewModel extends GetxController {
     messageStream!.listen((event) async {
       if (event.data() != null) {
         logWarning('Message stream changed.');
+        logWarning('Message stream event: ${event.data()!.length}');
+
+        //refilter message
         inbox.value = filter(
             Inbox.fromMap(event.data() ?? {}).messageBox,
-            Get.find<UserProvider>().userRepository.value.currentUser!.uid,
+            Get.find<UserRepository>().userProvider.value.currentUser!.uid,
             their.value.uid);
+
+        //call to refresh newest message
+        Get.find<MessageTabViewModel>().initData();
         scrollDown();
+      } else {
+        logWarning('Message stream is null.');
       }
     });
   }
@@ -49,32 +60,12 @@ class ChatScreenViewModel extends GetxController {
     logWarning('End message subscription.');
   }
 
-  List filter(List<dynamic> list, String myUid, String theirUid) {
-    var temp = [];
-    for (Message i in list) {
-      if (i.senderUid == myUid && i.receiverUid == theirUid) {
-        temp.add(i);
-      }
-      if (i.senderUid == theirUid && i.receiverUid == myUid) {
-        temp.add(i);
-      }
-    }
-    return temp;
-  }
-
   Future<void> initChatDialog(String myUid, String theirUid) async {
-    debugPrint('Chat with $theirUid');
+    debugPrint('$myUid chat with $theirUid');
     their.value = (await CloudFirestoreService().getChatUserByUid(theirUid))!;
     startStream();
     inbox.value = (await CloudFirestoreService()
         .getAllMessagesForCurrentDialog(myUid, theirUid))!;
-  }
-
-  Future<void> scrollDown() async {
-    //delay 3 seconds
-    await Future.delayed(const Duration(milliseconds: 100), () {
-      scrollController.jumpTo(scrollController.position.maxScrollExtent);
-    });
   }
 
   void sendMessage(dynamic content) {
@@ -84,7 +75,7 @@ class ChatScreenViewModel extends GetxController {
           CloudFirestoreService().sendTextMessage(TextMessage(
             content: content,
             senderUid:
-                Get.find<UserProvider>().userRepository.value.currentUser!.uid,
+                Get.find<UserRepository>().userProvider.value.currentUser!.uid,
             receiverUid: their.value.uid,
             createAt: Timestamp.now(),
             isRemoveBySender: false,
@@ -112,13 +103,12 @@ class ChatScreenViewModel extends GetxController {
 
   Widget catchTypeOfMessage(dynamic e) {
     bool isMe = e.senderUid ==
-        Get.find<UserProvider>().userRepository.value.currentUser!.uid;
+        Get.find<UserRepository>().userProvider.value.currentUser!.uid;
     switch (e.runtimeType) {
       case TextMessage:
         return Container(
           constraints: BoxConstraints(
               maxHeight: Get.height * 0.7, maxWidth: Get.width * 0.7),
-          // width: Get.size.width * 0.7,
           margin: const EdgeInsets.symmetric(horizontal: 10),
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
@@ -402,7 +392,7 @@ class ChatScreenViewModel extends GetxController {
             GestureDetector(
                 onTap: () {},
                 child: const Text(
-                  'Remove message for me',
+                  'Remove for me',
                   style: TextStyle(fontSize: 16),
                 )),
             const SizedBox(
@@ -411,7 +401,7 @@ class ChatScreenViewModel extends GetxController {
             GestureDetector(
                 onTap: () {},
                 child: const Text(
-                  'Remove message for all',
+                  'Delete for all',
                   style: TextStyle(fontSize: 16),
                 )),
             e is! TextMessage
@@ -436,7 +426,7 @@ class ChatScreenViewModel extends GetxController {
                         Get.back();
                       },
                       child: const Text(
-                        'Download to device',
+                        'Download',
                         style: TextStyle(fontSize: 16),
                       ),
                     ),
@@ -448,5 +438,53 @@ class ChatScreenViewModel extends GetxController {
     ]);
   }
 
-  void copyToClipboard(e) {}
+  void copyToClipboard(e) {
+    switch (e.runtimeType) {
+      case TextMessage:
+        Clipboard.setData(ClipboardData(text: e.content));
+        break;
+      case ImageMessage:
+        Clipboard.setData(ClipboardData(text: e.imageUrl));
+        break;
+      case VideoMessage:
+        Clipboard.setData(ClipboardData(text: e.videoUrl));
+        break;
+      case AudioMessage:
+        Clipboard.setData(ClipboardData(text: e.audioUrl));
+        break;
+      case FileMessage:
+        Clipboard.setData(ClipboardData(text: e.fileUrl));
+        break;
+    }
+    Get.back();
+    Get.snackbar(
+      'Copied',
+      'Copied to clipboard',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.black,
+      colorText: Colors.white,
+      margin: const EdgeInsets.all(20),
+      borderRadius: 16,
+      duration: const Duration(milliseconds: 1000),
+    );
+  }
+
+  List filter(List<dynamic> list, String myUid, String theirUid) {
+    var temp = [];
+    for (Message i in list) {
+      if (i.senderUid == myUid && i.receiverUid == theirUid) {
+        temp.add(i);
+      }
+      if (i.senderUid == theirUid && i.receiverUid == myUid) {
+        temp.add(i);
+      }
+    }
+    return temp;
+  }
+
+  Future<void> scrollDown() async {
+    await Future.delayed(const Duration(milliseconds: 100), () {
+      scrollController.jumpTo(scrollController.position.maxScrollExtent);
+    });
+  }
 }
