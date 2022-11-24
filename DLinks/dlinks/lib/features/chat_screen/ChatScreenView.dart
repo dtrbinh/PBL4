@@ -15,6 +15,7 @@ class ChatScreenView extends StatefulWidget {
 class _ChatScreenViewState extends State<ChatScreenView> {
   final viewModel = Get.put(ChatScreenViewModel());
   final myUid = Get.find<UserProvider>().userRepository.value.currentUser!.uid;
+
   @override
   void initState() {
     viewModel.initChatDialog(myUid, widget.theirUid);
@@ -26,10 +27,13 @@ class _ChatScreenViewState extends State<ChatScreenView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.white),
+        leadingWidth: 30,
+        backgroundColor: Colors.black,
         title: Obx(() => Row(
               children: [
                 CircleAvatar(
+                  radius: 20,
                   backgroundColor: Colors.white,
                   backgroundImage: NetworkImage(viewModel
                           .their.value.photoURL ??
@@ -38,7 +42,16 @@ class _ChatScreenViewState extends State<ChatScreenView> {
                 const SizedBox(
                   width: 10,
                 ),
-                Text(viewModel.their.value.displayName ?? '...'),
+                Expanded(
+                  child: Text(
+                    viewModel.their.value.displayName ?? 'Chatting with ...',
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        overflow: TextOverflow.ellipsis),
+                  ),
+                ),
               ],
             )),
         actions: [
@@ -46,48 +59,52 @@ class _ChatScreenViewState extends State<ChatScreenView> {
               onPressed: () {},
               icon: const Icon(
                 Icons.more_vert,
-                color: Colors.black,
               ))
         ],
       ),
-      body: Container(
-        color: Colors.white,
-        child: Column(children: [
-          Expanded(
-            child: SingleChildScrollView(
-                controller: viewModel.scrollController,
-                child: Obx(
-                  () => Column(
-                    children: viewModel.inbox.value
-                        .map((e) => _messageCard(e))
-                        .toList(),
+      body: GestureDetector(
+        onTap: () {
+          FocusManager.instance.primaryFocus?.unfocus();
+        },
+        child: Container(
+          color: Colors.white,
+          child: Column(children: [
+            Expanded(
+              child: SingleChildScrollView(
+                  controller: viewModel.scrollController,
+                  child: Obx(
+                    () => Column(
+                      children: viewModel.inbox.value
+                          .map((e) => _messageCard(e))
+                          .toList(),
+                    ),
+                  )
+                  // StreamBuilder(
+                  //   stream: viewModel.messageStream,
+                  //   builder: (BuildContext context,
+                  //       AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>>
+                  //           snapshot) {
+                  //     if (!snapshot.hasData) {
+                  //       return const LinearProgressIndicator(color: Colors.black, backgroundColor: Colors.grey,);
+                  //     }
+                  //     debugPrint(snapshot.data!.data().toString());
+                  //     viewModel.inbox.value =
+                  //         Inbox.fromMap(snapshot.data!.data() ?? {});
+                  //     viewModel.filterMessage();
+                  //     return Obx(
+                  //       () => Column(
+                  //         children: viewModel.dialog.value
+                  //             .map((e) => _messageCard(e))
+                  //             .toList(),
+                  //       ),
+                  //     );
+                  //   },
+                  // )
                   ),
-                )
-                // StreamBuilder(
-                //   stream: viewModel.messageStream,
-                //   builder: (BuildContext context,
-                //       AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>>
-                //           snapshot) {
-                //     if (!snapshot.hasData) {
-                //       return const LinearProgressIndicator(color: Colors.black, backgroundColor: Colors.grey,);
-                //     }
-                //     debugPrint(snapshot.data!.data().toString());
-                //     viewModel.inbox.value =
-                //         Inbox.fromMap(snapshot.data!.data() ?? {});
-                //     viewModel.filterMessage();
-                //     return Obx(
-                //       () => Column(
-                //         children: viewModel.dialog.value
-                //             .map((e) => _messageCard(e))
-                //             .toList(),
-                //       ),
-                //     );
-                //   },
-                // )
-                ),
-          ),
-          sendBox(),
-        ]),
+            ),
+            sendBox(),
+          ]),
+        ),
       ),
     );
   }
@@ -95,40 +112,43 @@ class _ChatScreenViewState extends State<ChatScreenView> {
   Widget sendBox() {
     return Row(
       children: [
-        IconButton(onPressed: () {}, icon: Icon(Icons.add)),
+        IconButton(onPressed: () {}, icon: const Icon(Icons.add)),
         Expanded(
           child: Container(
             color: Colors.white,
-            height: 70,
-            padding: const EdgeInsets.symmetric(vertical: 10),
+            padding: const EdgeInsets.symmetric(vertical: 5),
+            margin: const EdgeInsets.only(right: 16),
             child: TextField(
+              onTap: () async {
+                await Future.delayed(const Duration(milliseconds: 200), () {
+                  viewModel.scrollDown();
+                });
+              },
+              minLines: 1,
+              maxLines: 5,
               controller: viewModel.messageController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+                  suffixIcon: IconButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: () {
+                      viewModel
+                          .sendMessage(viewModel.messageController.value.text);
+                      viewModel.messageController.text = '';
+                    },
+                    icon: const Icon(Icons.send),
+                  ),
                   hintText: "Type a message",
-                  border: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.black45, width: 1),
+                  border: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.black, width: 1),
                       borderRadius: BorderRadius.all(Radius.circular(8)))),
-              // onChanged: (value) {
-              //   viewModel.messageController.text = value;
-              // },
               onSubmitted: (content) {
                 viewModel.sendMessage(content);
                 viewModel.messageController.text = '';
-                // FocusManager.instance.primaryFocus?.unfocus();
-                viewModel.scrollDown();
               },
             ),
           ),
         ),
-        IconButton(
-          padding: EdgeInsets.zero,
-          onPressed: () {
-            viewModel.sendMessage(viewModel.messageController.value.text);
-            viewModel.messageController.text = '';
-            viewModel.scrollDown();
-          },
-          icon: const Icon(Icons.send),
-        )
       ],
     );
   }

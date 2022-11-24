@@ -40,8 +40,7 @@ class ChatScreenViewModel extends GetxController {
             Inbox.fromMap(event.data() ?? {}).messageBox,
             Get.find<UserProvider>().userRepository.value.currentUser!.uid,
             their.value.uid);
-        // scrollController.animateTo(scrollController.position.maxScrollExtent,
-        //     duration: Duration.zero, curve: Curves.ease);
+        scrollDown();
       }
     });
   }
@@ -71,9 +70,9 @@ class ChatScreenViewModel extends GetxController {
         .getAllMessagesForCurrentDialog(myUid, theirUid))!;
   }
 
-  void scrollDown() {
+  Future<void> scrollDown() async {
     //delay 3 seconds
-    Future.delayed(const Duration(milliseconds: 500), () {
+    await Future.delayed(const Duration(milliseconds: 100), () {
       scrollController.jumpTo(scrollController.position.maxScrollExtent);
     });
   }
@@ -204,7 +203,9 @@ class ChatScreenViewModel extends GetxController {
               )),
         );
       case AudioMessage:
-        audioPlayer.value.setUrl(e.audioUrl);
+        try {
+          audioPlayer.value.setUrl(e.audioUrl);
+        } catch (ignored) {}
         return GestureDetector(
           onTap: () async {
             try {
@@ -382,14 +383,27 @@ class ChatScreenViewModel extends GetxController {
               BoxShadow(color: Colors.black45, blurRadius: 10)
             ]),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            GestureDetector(
+                onTap: () {
+                  copyToClipboard(e);
+                },
+                child: Text(
+                  e is TextMessage
+                      ? 'Copy message to clipboard'
+                      : 'Copy URL to clipboard',
+                  style: const TextStyle(fontSize: 16),
+                )),
+            const SizedBox(
+              height: 20,
+            ),
             GestureDetector(
                 onTap: () {},
                 child: const Text(
                   'Remove message for me',
-                  style: TextStyle(fontSize: 18),
+                  style: TextStyle(fontSize: 16),
                 )),
             const SizedBox(
               height: 20,
@@ -398,7 +412,7 @@ class ChatScreenViewModel extends GetxController {
                 onTap: () {},
                 child: const Text(
                   'Remove message for all',
-                  style: TextStyle(fontSize: 18),
+                  style: TextStyle(fontSize: 16),
                 )),
             e is! TextMessage
                 ? Padding(
@@ -423,7 +437,7 @@ class ChatScreenViewModel extends GetxController {
                       },
                       child: const Text(
                         'Download to device',
-                        style: TextStyle(fontSize: 18),
+                        style: TextStyle(fontSize: 16),
                       ),
                     ),
                   )
@@ -433,4 +447,6 @@ class ChatScreenViewModel extends GetxController {
       ),
     ]);
   }
+
+  void copyToClipboard(e) {}
 }

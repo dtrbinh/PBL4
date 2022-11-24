@@ -98,18 +98,29 @@ class _ContactTabViewState extends State<ContactTabView> {
                   shape: BoxShape.circle),
             ),
             const SizedBox(
-              width: 30,
+              width: 20,
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(user.displayName!),
-                Text(user.email!),
-              ],
+            SizedBox(
+              width: Get.width / 2,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    user.displayName!,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                  Text(
+                    user.email!,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ],
+              ),
             ),
             const Spacer(),
-            IconButton(onPressed: () {}, icon: const Icon(Icons.add))
+            IconButton(onPressed: () {}, icon: const Icon(Icons.message))
           ],
         ),
       ),
