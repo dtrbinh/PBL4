@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
 import '../model/AudioMessage.dart';
 import '../model/ChatUser.dart';
@@ -13,10 +14,10 @@ import '../model/Message.dart';
 import '../../utils/error_manager/ErrorLogger.dart';
 import '../model/TextMessage.dart';
 import '../model/VideoMessage.dart';
+import 'LocalCacheService.dart';
 
 class CloudFirestoreService {
   //-----CHAT USERS REGION
-
   Future<void> createNewAccount(User user) async {
     bool isExist = false;
     await FirebaseFirestore.instance
@@ -155,9 +156,7 @@ class CloudFirestoreService {
     return result;
   }
 
-  List<ChatUser>? searchChatUserByKeyWord(String keyword) {
-
-  }
+  List<ChatUser>? searchChatUserByKeyWord(String keyword) {}
 
   Future<ChatUser?> getChatUserByUid(String uid) async {
     ChatUser? result;
@@ -173,6 +172,38 @@ class CloudFirestoreService {
       }
     });
     return result;
+  }
+
+  Future<bool> setChatUserStatus(userUid, status) {
+    return FirebaseFirestore.instance
+        .collection('ChatUsers')
+        .doc(userUid)
+        .update({'status': status})
+        .then((value) => true)
+        .catchError((error) {
+          logError('----------Internal Error: $error');
+          return false;
+        });
+  }
+
+  Future<bool> setChatUserLastSeen(String userUid, Timestamp lastSeen) {
+    return FirebaseFirestore.instance
+        .collection('ChatUsers')
+        .doc(userUid)
+        .update({'lastSeen': lastSeen})
+        .then((value) => true)
+        .catchError((error) {
+          logError('----------Internal Error: $error');
+          return false;
+        });
+  }
+
+  Stream<DocumentSnapshot<Map<String, dynamic>>> getTheirUserStream(
+      String theirUid) {
+    return FirebaseFirestore.instance
+        .collection('ChatUsers')
+        .doc(theirUid)
+        .snapshots();
   }
 
   // -----MESSAGES FUNCTION REGION
@@ -197,8 +228,8 @@ class CloudFirestoreService {
     return temp; // select distinct
   }
 
-  Future<Stream<DocumentSnapshot<Map<String, dynamic>>>> getMessageStream(
-      String myUid) async {
+  Stream<DocumentSnapshot<Map<String, dynamic>>> getMessageStream(
+      String myUid) {
     return FirebaseFirestore.instance
         .collection('Inbox')
         .doc(myUid)
@@ -282,4 +313,7 @@ class CloudFirestoreService {
     }
     return true;
   }
+
+  /// -----CALLBACK FUNCTION REGION
+
 }

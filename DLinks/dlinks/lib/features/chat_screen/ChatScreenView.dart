@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dlinks/data/repository/UserRepository.dart';
 import 'package:dlinks/features/chat_screen/ChatScreenViewModel.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 class ChatScreenView extends StatefulWidget {
   final String theirUid;
@@ -32,24 +34,73 @@ class _ChatScreenViewState extends State<ChatScreenView> {
         backgroundColor: Colors.black,
         title: Obx(() => Row(
               children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: Colors.white,
-                  backgroundImage: NetworkImage(viewModel
-                          .their.value.photoURL ??
-                      'https://icon-library.com/images/no-user-image-icon/no-user-image-icon-27.jpg'),
-                ),
+                Stack(children: [
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundColor: Colors.white,
+                    backgroundImage: NetworkImage(viewModel
+                            .their.value.photoURL ??
+                        'https://icon-library.com/images/no-user-image-icon/no-user-image-icon-27.jpg'),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      width: 15,
+                      height: 15,
+                      decoration: BoxDecoration(
+                          color: (viewModel.their.value.status ?? false)
+                              ? Colors.green
+                              : Colors.grey,
+                          shape: BoxShape.circle,
+                          border: const Border.fromBorderSide(
+                              BorderSide(color: Colors.white, width: 2))),
+                    ),
+                  )
+                ]),
                 const SizedBox(
                   width: 10,
                 ),
-                Expanded(
-                  child: Text(
-                    viewModel.their.value.displayName ?? 'Chatting with ...',
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        overflow: TextOverflow.ellipsis),
+                Flexible(
+                  flex: 10,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        viewModel.their.value.displayName ?? '...',
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            overflow: TextOverflow.clip),
+                      ),
+                      Text(
+                        (viewModel.their.value.status ?? false)
+                            ? 'Đang hoạt động'
+                            : DateTime.now()
+                                        .difference(
+                                            (viewModel.their.value.lastSeen ??
+                                                    Timestamp.now())
+                                                .toDate())
+                                        .inDays >
+                                    0
+                                ? 'Hoạt động ${DateTime.now().difference((viewModel.their.value.lastSeen ?? Timestamp.now()).toDate()).inDays} ngày trước'
+                                : DateTime.now()
+                                            .difference((viewModel
+                                                        .their.value.lastSeen ??
+                                                    Timestamp.now())
+                                                .toDate())
+                                            .inHours >
+                                        0
+                                    ? 'Hoạt động ${DateTime.now().difference((viewModel.their.value.lastSeen ?? Timestamp.now()).toDate()).inHours} giờ trước'
+                                    : 'Hoạt động ${DateTime.now().difference((viewModel.their.value.lastSeen ?? Timestamp.now()).toDate()).inMinutes} phút trước',
+                        overflow: TextOverflow.visible,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            overflow: TextOverflow.ellipsis),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -74,33 +125,56 @@ class _ChatScreenViewState extends State<ChatScreenView> {
                   controller: viewModel.scrollController,
                   child: Obx(
                     () => Column(
-                      children: viewModel.inbox.value
-                          .map((e) => _messageCard(e))
-                          .toList(),
+                      children: <Widget>[
+                            Obx(
+                              () => Container(
+                                  padding: const EdgeInsets.all(20),
+                                  child: Column(
+                                    children: [
+                                      Center(
+                                        child: CircleAvatar(
+                                          radius: 40,
+                                          backgroundColor: Colors.white,
+                                          backgroundImage: NetworkImage(viewModel
+                                                  .their.value.photoURL ??
+                                              'https://icon-library.com/images/no-user-image-icon/no-user-image-icon-27.jpg'),
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 5,
+                                      ),
+                                      Text(
+                                        viewModel.their.value.displayName ??
+                                            '...',
+                                        style: const TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            overflow: TextOverflow.ellipsis),
+                                      ),
+                                      const SizedBox(
+                                        height: 5,
+                                      ),
+                                      //join at
+                                      Text(
+                                        'Tham gia vào ${DateFormat('dd/MM/yyyy').format((viewModel.their.value.createdAt ?? Timestamp.now()).toDate())}',
+                                        style: const TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 15,
+                                            overflow: TextOverflow.ellipsis),
+                                      ),
+                                      const SizedBox(
+                                        height: 5,
+                                      ),
+                                    ],
+                                  )),
+                            ),
+                          ] +
+                          viewModel.inbox.value
+                              .map((e) => _messageCard(e))
+                              .toList(),
                     ),
-                  )
-                  // StreamBuilder(
-                  //   stream: viewModel.messageStream,
-                  //   builder: (BuildContext context,
-                  //       AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>>
-                  //           snapshot) {
-                  //     if (!snapshot.hasData) {
-                  //       return const LinearProgressIndicator(color: Colors.black, backgroundColor: Colors.grey,);
-                  //     }
-                  //     debugPrint(snapshot.data!.data().toString());
-                  //     viewModel.inbox.value =
-                  //         Inbox.fromMap(snapshot.data!.data() ?? {});
-                  //     viewModel.filterMessage();
-                  //     return Obx(
-                  //       () => Column(
-                  //         children: viewModel.dialog.value
-                  //             .map((e) => _messageCard(e))
-                  //             .toList(),
-                  //       ),
-                  //     );
-                  //   },
-                  // )
-                  ),
+                  )),
             ),
             sendBox(),
           ]),
@@ -160,7 +234,8 @@ class _ChatScreenViewState extends State<ChatScreenView> {
     viewModel.scrollController.dispose();
     viewModel.audioPlayer.value.stop();
     viewModel.audioPlayer.value.dispose();
-    viewModel.endStream();
+    viewModel.endMessageStream();
+    viewModel.endTheirUserStream();
     super.dispose();
   }
 

@@ -1,6 +1,9 @@
 import 'package:dlinks/features/home/HomeViewModel.dart';
+import 'package:dlinks/utils/error_manager/ErrorLogger.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import '../../data/services/LocalCacheService.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -11,6 +14,11 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   final HomeViewModel viewModel = Get.put(HomeViewModel());
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

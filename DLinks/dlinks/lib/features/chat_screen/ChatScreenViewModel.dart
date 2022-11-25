@@ -27,26 +27,24 @@ class ChatScreenViewModel extends GetxController {
   Stream<DocumentSnapshot<Map<String, dynamic>>>? messageStream;
 
   Rx<ChatUser> their = ChatUser(uid: '').obs;
+
   TextEditingController messageController = TextEditingController();
   ScrollController scrollController = ScrollController();
   var inbox = [].obs;
   Rx<AudioPlayer> audioPlayer = AudioPlayer().obs;
 
-  void startStream() async {
+  void startMessageStream() async {
     logWarning('Start message subscription.');
-    messageStream = await CloudFirestoreService().getMessageStream(
+    messageStream = CloudFirestoreService().getMessageStream(
         Get.find<UserRepository>().userProvider.value.currentUser!.uid); //myUid
     messageStream!.listen((event) async {
       if (event.data() != null) {
         logWarning('Message stream changed.');
-        logWarning('Message stream event: ${event.data()!.length}');
-
-        //refilter message
+        //re filter message
         inbox.value = filter(
             Inbox.fromMap(event.data() ?? {}).messageBox,
             Get.find<UserRepository>().userProvider.value.currentUser!.uid,
             their.value.uid);
-
         //call to refresh newest message
         Get.find<MessageTabViewModel>().initData();
         scrollDown();
@@ -56,8 +54,26 @@ class ChatScreenViewModel extends GetxController {
     });
   }
 
-  void endStream() {
+  void endMessageStream() {
     logWarning('End message subscription.');
+  }
+
+  void startTheirUserStream() async {
+    logWarning('Start their user subscription.');
+    CloudFirestoreService()
+        .getTheirUserStream(their.value.uid)
+        .listen((event) async {
+      if (event.data() != null) {
+        logWarning('Their user stream changed.');
+        their.value = ChatUser.fromMap(event.data() ?? {});
+      } else {
+        logWarning('Their user stream is null.');
+      }
+    });
+  }
+
+  void endTheirUserStream() {
+    logWarning('End their user subscription.');
   }
 
   Future<void> initChatDialog(String myUid, String theirUid) async {
@@ -66,7 +82,8 @@ class ChatScreenViewModel extends GetxController {
     //stream listen under get message for dialog -> merge 2 message inbox for 2 user
     inbox.value = (await CloudFirestoreService()
         .getAllMessagesForCurrentDialog(myUid, theirUid))!;
-    startStream();
+    startMessageStream();
+    startTheirUserStream();
   }
 
   void sendMessage(dynamic content) {
