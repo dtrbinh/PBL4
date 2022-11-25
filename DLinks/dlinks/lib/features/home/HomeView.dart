@@ -1,6 +1,9 @@
 import 'package:dlinks/features/home/HomeViewModel.dart';
+import 'package:dlinks/utils/error_manager/ErrorLogger.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import '../../data/services/LocalCacheService.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -11,6 +14,22 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   final HomeViewModel viewModel = Get.put(HomeViewModel());
+
+  @override
+  void initState() {
+    // Direct to this screen = online;
+    // Wait cho write to local cache and cloud firestore
+    // Future.delayed(const Duration(milliseconds: 100), () {
+    //   LocalCacheService.getString('myUid').then((value) {
+    //     if (value != null) {
+    //       viewModel.setOnline(value);
+    //     } else {
+    //       logWarning('Null cached uid');
+    //     }
+    //   });
+    // });
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

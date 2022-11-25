@@ -21,7 +21,10 @@ class _MessageTabViewState extends State<MessageTabView> {
   @override
   void initState() {
     super.initState();
-    viewModel.initData();
+    //delay to avoid error when first login
+    Future.delayed(const Duration(milliseconds: 100), () {
+      viewModel.initData();
+    });
   }
 
   @override
