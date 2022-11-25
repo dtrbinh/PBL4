@@ -29,6 +29,7 @@ class AuthService {
         // logWarning('----------AuthService: User is write to cache.');
         LocalCacheService.setBool('isLogin', true);
         LocalCacheService.setString('myUid', _user!.uid);
+        // await setChatUserOnline();
       } else {
         // logWarning('----------AuthService: User is null');
         LocalCacheService.setBool('isLogin', false);
@@ -43,7 +44,7 @@ class AuthService {
   Future<bool> handleSignOut() async {
     bool isSignOut = false;
     try {
-      await CloudFirestoreService().setChatUserOffline();
+      await setChatUserOffline();
       await firebaseService.signOutFromGoogle();
       isSignOut = true;
     } catch (error) {

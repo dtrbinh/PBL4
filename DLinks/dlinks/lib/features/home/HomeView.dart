@@ -17,17 +17,6 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   void initState() {
-    // Direct to this screen = online;
-    // Wait cho write to local cache and cloud firestore
-    // Future.delayed(const Duration(milliseconds: 100), () {
-    //   LocalCacheService.getString('myUid').then((value) {
-    //     if (value != null) {
-    //       viewModel.setOnline(value);
-    //     } else {
-    //       logWarning('Null cached uid');
-    //     }
-    //   });
-    // });
     super.initState();
   }
 

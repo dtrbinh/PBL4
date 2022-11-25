@@ -315,30 +315,5 @@ class CloudFirestoreService {
   }
 
   /// -----CALLBACK FUNCTION REGION
-  VoidCallback? setChatUserOffline() {
-    logWarning('----------setChatUserOffline: Start');
-    LocalCacheService.getString('myUid').then((value) async {
-      if (value != null) {
-        await CloudFirestoreService().setChatUserStatus(
-            await LocalCacheService.getString('myUid'), false);
-        await CloudFirestoreService()
-            .setChatUserLastSeen(value, Timestamp.now());
-      } else {
-        logWarning('----------setChatUserOffline: Fail');
-      }
-    });
-    return null;
-  }
 
-  VoidCallback? setChatUserOnline() {
-    logWarning('----------setChatUserOnline: Start');
-    LocalCacheService.getString('myUid').then((value) async {
-      if (value != null) {
-        await CloudFirestoreService().setChatUserStatus(value, true);
-      } else {
-        logWarning('----------setChatUserOnline: Fail');
-      }
-    });
-    return null;
-  }
 }

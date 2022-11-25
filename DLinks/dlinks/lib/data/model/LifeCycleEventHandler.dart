@@ -1,12 +1,14 @@
 import 'package:dlinks/utils/error_manager/ErrorLogger.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
 
 class LifecycleEventHandler extends WidgetsBindingObserver {
   LifecycleEventHandler(
       {required this.resumeCallBack, required this.detachedCallBack});
 
-  final VoidCallback? resumeCallBack;
-  final VoidCallback? detachedCallBack;
+  final AsyncCallback resumeCallBack;
+  final AsyncCallback detachedCallBack;
 
 //  @override
 //  Future<bool> didPopRoute()
@@ -18,16 +20,20 @@ class LifecycleEventHandler extends WidgetsBindingObserver {
   Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
     switch (state) {
       case AppLifecycleState.inactive:
-        // await detachedCallBack;
+        logWarning('App inactive.');
+        await detachedCallBack();
         break;
       case AppLifecycleState.paused:
-        detachedCallBack;
+        // logWarning('App paused.');
+        // await detachedCallBack;
         break;
       case AppLifecycleState.detached:
-        detachedCallBack;
+        logWarning('App detached.');
+        await detachedCallBack();
         break;
       case AppLifecycleState.resumed:
-        resumeCallBack;
+        logWarning('App resumed.');
+        await resumeCallBack();
         break;
     }
     logWarning('''
