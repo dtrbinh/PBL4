@@ -14,6 +14,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:speech_to_text/speech_recognition_result.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 
 import '../../data/model/AudioMessage.dart';
 import '../../data/model/ChatUser.dart';
@@ -32,6 +35,12 @@ class ChatScreenViewModel extends GetxController {
   ScrollController scrollController = ScrollController();
   var inbox = [].obs;
   Rx<AudioPlayer> audioPlayer = AudioPlayer().obs;
+
+
+  // s2t variables
+  var isSpeech = false.obs;
+  late SpeechToText speechToText;
+  var lastWords = ''.obs;
 
   void startMessageStream() async {
     logWarning('Start message subscription.');
@@ -105,6 +114,37 @@ class ChatScreenViewModel extends GetxController {
       default:
         break;
     }
+  }
+
+  void copyToClipboard(e) {
+    switch (e.runtimeType) {
+      case TextMessage:
+        Clipboard.setData(ClipboardData(text: e.content));
+        break;
+      case ImageMessage:
+        Clipboard.setData(ClipboardData(text: e.imageUrl));
+        break;
+      case VideoMessage:
+        Clipboard.setData(ClipboardData(text: e.videoUrl));
+        break;
+      case AudioMessage:
+        Clipboard.setData(ClipboardData(text: e.audioUrl));
+        break;
+      case FileMessage:
+        Clipboard.setData(ClipboardData(text: e.fileUrl));
+        break;
+    }
+    Get.back();
+    Get.snackbar(
+      'Copied',
+      'Copied to clipboard',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.black,
+      colorText: Colors.white,
+      margin: const EdgeInsets.all(20),
+      borderRadius: 16,
+      duration: const Duration(milliseconds: 1000),
+    );
   }
 
   Widget getMessageBlock(dynamic e) {
@@ -456,37 +496,6 @@ class ChatScreenViewModel extends GetxController {
     ]);
   }
 
-  void copyToClipboard(e) {
-    switch (e.runtimeType) {
-      case TextMessage:
-        Clipboard.setData(ClipboardData(text: e.content));
-        break;
-      case ImageMessage:
-        Clipboard.setData(ClipboardData(text: e.imageUrl));
-        break;
-      case VideoMessage:
-        Clipboard.setData(ClipboardData(text: e.videoUrl));
-        break;
-      case AudioMessage:
-        Clipboard.setData(ClipboardData(text: e.audioUrl));
-        break;
-      case FileMessage:
-        Clipboard.setData(ClipboardData(text: e.fileUrl));
-        break;
-    }
-    Get.back();
-    Get.snackbar(
-      'Copied',
-      'Copied to clipboard',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.black,
-      colorText: Colors.white,
-      margin: const EdgeInsets.all(20),
-      borderRadius: 16,
-      duration: const Duration(milliseconds: 1000),
-    );
-  }
-
   List filter(List<dynamic> list, String myUid, String theirUid) {
     var temp = [];
     for (Message i in list) {
@@ -504,5 +513,36 @@ class ChatScreenViewModel extends GetxController {
     await Future.delayed(const Duration(milliseconds: 100), () {
       scrollController.jumpTo(scrollController.position.maxScrollExtent);
     });
+  }
+
+  void initSpeech() async {
+    if (await Permission.microphone.request().isGranted) {
+      speechToText = SpeechToText();
+      await speechToText.initialize(
+          onStatus: (val) => logWarning('----------S2T onStatus: $val'),
+          onError: (val) => logError('----------S2T onError: $val'));
+    } else {
+      Get.snackbar('Permission', 'Microphone permission is required');
+    }
+  }
+
+  void startListening() async {
+    logWarning('----------Start listening');
+    await speechToText.listen(onResult: _onSpeechResult, sampleRate: 16000);
+    isSpeech.value = true;
+  }
+
+  void stopListening() async {
+    logWarning('----------Stop listening');
+    await speechToText.stop();
+    messageController.text = '';
+    messageController.text = lastWords.value;
+    isSpeech.value = false;
+  }
+
+  void _onSpeechResult(SpeechRecognitionResult result) {
+    lastWords.value = result.recognizedWords;
+    messageController.text = lastWords.value;
+    // debugPrint("----------Detect: ${lastWords.value}");
   }
 }

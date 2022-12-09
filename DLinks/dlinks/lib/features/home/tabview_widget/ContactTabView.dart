@@ -72,11 +72,11 @@ class _ContactTabViewState extends State<ContactTabView> {
       },
       child: Container(
         width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height / 12,
+        height: MediaQuery.of(context).size.height / 11,
         padding: const EdgeInsets.all(8.0),
         margin: const EdgeInsets.only(left: 16, right: 16, top: 16),
         decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(14),
             // border: Border.all(color: Colors.black45, width: 1),
             boxShadow: const [
               BoxShadow(
@@ -98,7 +98,7 @@ class _ContactTabViewState extends State<ContactTabView> {
                   shape: BoxShape.circle),
             ),
             const SizedBox(
-              width: 20,
+              width: 10,
             ),
             SizedBox(
               width: Get.width / 2,

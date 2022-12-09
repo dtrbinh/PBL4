@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dlinks/data/repository/UserRepository.dart';
 import 'package:dlinks/features/chat_screen/ChatScreenViewModel.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
@@ -20,6 +21,7 @@ class _ChatScreenViewState extends State<ChatScreenView> {
 
   @override
   void initState() {
+    viewModel.initSpeech();
     viewModel.initChatDialog(myUid, widget.theirUid);
     viewModel.scrollDown();
     super.initState();
@@ -184,46 +186,71 @@ class _ChatScreenViewState extends State<ChatScreenView> {
   }
 
   Widget sendBox() {
-    return Row(
-      children: [
-        IconButton(onPressed: () {}, icon: const Icon(Icons.add)),
-        Expanded(
-          child: Container(
-            color: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 5),
-            margin: const EdgeInsets.only(right: 16),
-            child: TextField(
-              onTap: () async {
-                await Future.delayed(const Duration(milliseconds: 200), () {
-                  viewModel.scrollDown();
-                });
-              },
-              minLines: 1,
-              maxLines: 5,
-              controller: viewModel.messageController,
-              decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 10),
-                  suffixIcon: IconButton(
-                    padding: EdgeInsets.zero,
-                    onPressed: () {
-                      viewModel
-                          .sendMessage(viewModel.messageController.value.text);
-                      viewModel.messageController.text = '';
-                    },
-                    icon: const Icon(Icons.send),
-                  ),
-                  hintText: "Type a message",
-                  border: const OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.black, width: 1),
-                      borderRadius: BorderRadius.all(Radius.circular(8)))),
-              onSubmitted: (content) {
-                viewModel.sendMessage(content);
-                viewModel.messageController.text = '';
-              },
-            ),
-          ),
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 5,
+            spreadRadius: 1,
+          )
+        ],
+      ),
+      child: Slidable(
+        startActionPane: ActionPane(
+          dragDismissible: false,
+          extentRatio: 0.3,
+          motion: const ScrollMotion(),
+          children: [
+            _sendFileComponent(),
+            _sendImageComponent(),
+            _speechToTextComponent(),
+          ],
         ),
-      ],
+        child: Row(
+          children: [
+            IconButton(onPressed: () {}, icon: const Icon(Icons.add)),
+            Expanded(
+              child: Container(
+                color: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 5),
+                margin: const EdgeInsets.only(right: 16),
+                child: TextField(
+                  onTap: () async {
+                    await Future.delayed(const Duration(milliseconds: 200), () {
+                      viewModel.scrollDown();
+                    });
+                  },
+                  minLines: 1,
+                  maxLines: 5,
+                  controller: viewModel.messageController,
+                  decoration: InputDecoration(
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 10),
+                      suffixIcon: IconButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () {
+                          viewModel.sendMessage(
+                              viewModel.messageController.value.text);
+                          viewModel.messageController.text = '';
+                        },
+                        icon: const Icon(Icons.send),
+                      ),
+                      hintText: "Type a message",
+                      border: const OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black, width: 1),
+                          borderRadius: BorderRadius.all(Radius.circular(8)))),
+                  onSubmitted: (content) {
+                    viewModel.sendMessage(content);
+                    viewModel.messageController.text = '';
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -234,9 +261,112 @@ class _ChatScreenViewState extends State<ChatScreenView> {
     viewModel.scrollController.dispose();
     viewModel.audioPlayer.value.stop();
     viewModel.audioPlayer.value.dispose();
+    viewModel.speechToText.cancel();
     viewModel.endMessageStream();
     viewModel.endTheirUserStream();
     super.dispose();
+  }
+
+  Widget _sendImageComponent() {
+    return SlidableAction(
+      onPressed: (context) {
+
+      },
+      backgroundColor: Colors.transparent,
+      foregroundColor: Colors.black,
+      icon: Icons.image,
+    );
+  }
+
+  Widget _sendFileComponent() {
+    return SlidableAction(
+      onPressed: (context) {},
+      backgroundColor: Colors.transparent,
+      foregroundColor: Colors.black,
+      icon: Icons.file_upload,
+    );
+  }
+
+  Widget _speechToTextComponent() {
+    return SlidableAction(
+      onPressed: (context) {
+        Get.dialog(
+          StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) =>
+                GestureDetector(
+              onTap: () {
+                Get.back();
+              },
+              child: AlertDialog(
+                backgroundColor: Colors.transparent,
+                elevation: 1,
+                contentPadding: EdgeInsets.only(top: Get.height / 2),
+                content: GestureDetector(
+                  onTapDown: (details) {
+                    setState(() {});
+                    if (viewModel.speechToText.isNotListening) {
+                      viewModel.startListening();
+                    } else {
+                      viewModel.stopListening();
+                    }
+                  },
+                  onTapUp: (details) {
+                    setState(() {});
+                    if (viewModel.speechToText.isListening) {
+                      viewModel.stopListening();
+                      Get.back();
+                    }
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.5),
+                          blurRadius: 15,
+                        ),
+                      ],
+                    ),
+                    height: 100,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'Press and hold to speak',
+                          style: TextStyle(color: Colors.black),
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        Container(
+                          height: 50,
+                          width: 50,
+                          decoration: BoxDecoration(
+                              color: viewModel.isSpeech.value
+                                  ? Colors.blue[300]
+                                  : Colors.grey[300],
+                              borderRadius: BorderRadius.circular(50)),
+                          child: const Icon(
+                            Icons.mic,
+                            color: Colors.grey,
+                            size: 24,
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          barrierColor: Colors.transparent,
+        );
+      },
+      backgroundColor: Colors.transparent,
+      foregroundColor: Colors.black,
+      icon: Icons.mic,
+    );
   }
 
   Widget _messageCard(dynamic e) {
