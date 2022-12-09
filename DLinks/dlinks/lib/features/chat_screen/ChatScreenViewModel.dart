@@ -424,10 +424,10 @@ class ChatScreenViewModel extends GetxController {
         // height: Get.size.height / 5,
         width: Get.size.width,
         padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: const [
+            borderRadius: BorderRadius.only(topRight: Radius.circular(16), topLeft: Radius.circular(16)),
+            boxShadow: [
               BoxShadow(color: Colors.black45, blurRadius: 10)
             ]),
         child: Column(
