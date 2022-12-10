@@ -60,7 +60,12 @@ dependencies:
 
   # new feature
   speech_to_text: ^6.1.1
+  google_mlkit_text_recognition: ^0.4.0
+  http: ^0.13.0
+  path_provider: ^2.0.0
 
+  #network
+  connectivity_plus: ^2.3.9
 
 
 dev_dependencies:

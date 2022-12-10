@@ -57,6 +57,7 @@ class DownloadManager {
       if (Platform.isAndroid) {
         String? taskId;
         try {
+          //TODO: implements directory for iOS
           await Directory('/storage/emulated/0/Download/DLinks/')
               .create(recursive: true);
           taskId = await FlutterDownloader.enqueue(
