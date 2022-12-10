@@ -48,17 +48,19 @@ dependencies:
   google_sign_in: ^5.4.2
   cloud_firestore: ^4.0.2
   firebase_core_platform_interface: 4.5.1
+  firebase_storage: ^11.0.0
 
   just_audio: ^0.9.30
   video_player: ^2.4.7
   url_launcher: ^6.1.6
   flutter_downloader: ^1.9.1
   permission_handler: ^10.2.0
-
   shared_preferences: ^2.0.15
+  file_picker: ^5.2.3
 
   # new feature
   speech_to_text: ^6.1.1
+
 
 
 dev_dependencies:

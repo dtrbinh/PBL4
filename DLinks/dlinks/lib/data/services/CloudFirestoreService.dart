@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dlinks/utils/DefaultMessage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -79,7 +80,7 @@ class CloudFirestoreService {
         isRecallBySender: false,
         isRecallByReceiver: false,
         isRemoveBySender: false,
-        imageUrl: 'https://picsum.photos/200/300');
+        imageUrl: DefaultMessage.FIRST_IMAGE);
     AudioMessage audioMessage = AudioMessage(
         senderUid: '00000',
         receiverUid: user.uid,
@@ -87,8 +88,7 @@ class CloudFirestoreService {
         isRecallBySender: false,
         isRecallByReceiver: false,
         isRemoveBySender: false,
-        audioUrl:
-            'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3');
+        audioUrl: DefaultMessage.FIRST_AUDIO);
     FileMessage fileMessage = FileMessage(
         senderUid: '00000',
         receiverUid: user.uid,
@@ -96,8 +96,7 @@ class CloudFirestoreService {
         isRecallBySender: false,
         isRecallByReceiver: false,
         isRemoveBySender: false,
-        fileUrl:
-            'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf');
+        fileUrl: DefaultMessage.FIRST_FILE);
     VideoMessage videoMessage = VideoMessage(
         senderUid: '00000',
         receiverUid: user.uid,
@@ -105,8 +104,7 @@ class CloudFirestoreService {
         isRecallBySender: false,
         isRecallByReceiver: false,
         isRemoveBySender: false,
-        videoUrl:
-            'https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4');
+        videoUrl: DefaultMessage.FIRST_VIDEO);
 
     TextMessage devMessage1 = TextMessage(
         senderUid: '11111',
@@ -291,22 +289,22 @@ class CloudFirestoreService {
     return result ?? null;
   }
 
-  Future<bool> sendTextMessage(TextMessage txtMessage) async {
+  Future<bool> sendMessage(dynamic message) async {
     try {
       //add message vào ib người gửi
       await FirebaseFirestore.instance
           .collection('Inbox')
-          .doc(txtMessage.senderUid)
+          .doc(message.senderUid)
           .update({
-        'messageBox': FieldValue.arrayUnion([txtMessage.toJson()])
+        'messageBox': FieldValue.arrayUnion([message.toJson()])
       });
 
       //add message vào ib người nhận
       await FirebaseFirestore.instance
           .collection('Inbox')
-          .doc(txtMessage.receiverUid)
+          .doc(message.receiverUid)
           .update({
-        'messageBox': FieldValue.arrayUnion([txtMessage.toJson()])
+        'messageBox': FieldValue.arrayUnion([message.toJson()])
       });
     } catch (error) {
       return false;

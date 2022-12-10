@@ -1,14 +1,18 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dlinks/data/model/Message.dart';
 import 'package:dlinks/data/repository/UserRepository.dart';
 import 'package:dlinks/data/services/CloudFirestoreService.dart';
+import 'package:dlinks/data/services/FirebaseStorageService.dart';
 import 'package:dlinks/features/home/tabview_widget/MessageTabViewModel.dart';
 import 'package:dlinks/utils/error_manager/ErrorLogger.dart';
 import 'package:dlinks/utils/widget/DownloadManager.dart';
 import 'package:dlinks/utils/widget/VideoPlayerView.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -28,19 +32,22 @@ import '../../data/model/VideoMessage.dart';
 
 class ChatScreenViewModel extends GetxController {
   Stream<DocumentSnapshot<Map<String, dynamic>>>? messageStream;
+  TextEditingController messageController = TextEditingController();
 
   Rx<ChatUser> their = ChatUser(uid: '').obs;
 
-  TextEditingController messageController = TextEditingController();
   ScrollController scrollController = ScrollController();
-  var inbox = [].obs;
   Rx<AudioPlayer> audioPlayer = AudioPlayer().obs;
-
+  var inbox = [].obs;
 
   // s2t variables
   var isSpeech = false.obs;
   late SpeechToText speechToText;
   var lastWords = ''.obs;
+
+  // file picker variables
+  var uploadProgress = 0.0.obs;
+  var isUploading = false.obs;
 
   void startMessageStream() async {
     logWarning('Start message subscription.');
@@ -93,27 +100,6 @@ class ChatScreenViewModel extends GetxController {
         .getAllMessagesForCurrentDialog(myUid, theirUid))!;
     startMessageStream();
     startTheirUserStream();
-  }
-
-  void sendMessage(dynamic content) {
-    switch (content.runtimeType) {
-      case String:
-        if (content != '') {
-          CloudFirestoreService().sendTextMessage(TextMessage(
-            content: content,
-            senderUid:
-                Get.find<UserRepository>().userProvider.value.currentUser!.uid,
-            receiverUid: their.value.uid,
-            createAt: Timestamp.now(),
-            isRemoveBySender: false,
-            isRecallByReceiver: false,
-            isRecallBySender: false,
-          ));
-        }
-        break;
-      default:
-        break;
-    }
   }
 
   void copyToClipboard(e) {
@@ -184,10 +170,34 @@ class ChatScreenViewModel extends GetxController {
         return GestureDetector(
           onTap: () {
             Get.dialog(
-                Stack(alignment: AlignmentDirectional.center, children: [
-                  Positioned(
-                      top: 20,
-                      left: 20,
+              Stack(alignment: AlignmentDirectional.center, children: [
+                Container(
+                  width: Get.size.width,
+                  constraints: BoxConstraints(
+                      maxHeight: Get.height, maxWidth: Get.width),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: CachedNetworkImage(
+                    fit: BoxFit.contain,
+                    imageUrl: e.imageUrl,
+                    placeholder: (context, url) =>
+                        const CircularProgressIndicator(
+                      color: Colors.white,
+                    ),
+                    errorWidget: (context, url, error) => const Icon(
+                      Icons.error,
+                      color: Colors.red,
+                    ),
+                  ),
+                ),
+                Positioned(
+                    top: 20,
+                    left: 20,
+                    child: Material(
+                      color: Colors.white.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(50),
+                      clipBehavior: Clip.hardEdge,
                       child: IconButton(
                         padding: EdgeInsets.zero,
                         onPressed: () {
@@ -195,12 +205,17 @@ class ChatScreenViewModel extends GetxController {
                         },
                         icon: const Icon(
                           Icons.arrow_back,
-                          color: Colors.white,
+                          color: Colors.black,
                         ),
-                      )),
-                  Positioned(
-                      top: 20,
-                      right: 20,
+                      ),
+                    )),
+                Positioned(
+                    top: 20,
+                    right: 20,
+                    child: Material(
+                      color: Colors.white.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(50),
+                      clipBehavior: Clip.hardEdge,
                       child: IconButton(
                         padding: EdgeInsets.zero,
                         onPressed: () {
@@ -208,45 +223,43 @@ class ChatScreenViewModel extends GetxController {
                         },
                         icon: const Icon(
                           Icons.download,
-                          color: Colors.white,
+                          color: Colors.black,
                         ),
-                      )),
-                  SizedBox(
-                    width: Get.size.width,
-                    child: CachedNetworkImage(
-                      fit: BoxFit.contain,
-                      imageUrl: e.imageUrl,
-                      placeholder: (context, url) =>
-                          const CircularProgressIndicator(
-                        color: Colors.white,
                       ),
-                      errorWidget: (context, url, error) => const Icon(
-                        Icons.error,
-                        color: Colors.red,
-                      ),
-                    ),
-                  ),
-                ]),
-                barrierColor: Colors.black);
+                    )),
+              ]),
+              barrierColor: Colors.black.withOpacity(0.8),
+            );
           },
           child: Container(
               constraints: BoxConstraints(
                   minWidth: Get.size.width * 0.3,
-                  maxWidth: Get.size.width * 0.7),
+                  maxWidth: Get.size.width * 0.7,
+                  maxHeight: Get.size.width * 0.7),
+              decoration:
+                  BoxDecoration(borderRadius: BorderRadius.circular(16)),
+              clipBehavior: Clip.hardEdge,
               margin: const EdgeInsets.symmetric(horizontal: 10),
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                  color: isMe ? Colors.blue : Colors.grey,
-                  borderRadius: BorderRadius.circular(16)),
               child: CachedNetworkImage(
                 fit: BoxFit.contain,
                 imageUrl: e.imageUrl,
-                placeholder: (context, url) => const CircularProgressIndicator(
-                  color: Colors.white,
+                placeholder: (context, url) => Container(
+                  width: Get.size.width * 0.2,
+                  height: Get.size.width * 0.2,
+                  color: Colors.transparent,
+                  child: const SpinKitFadingCircle(
+                    color: Colors.grey,
+                    size: 50,
+                  ),
                 ),
-                errorWidget: (context, url, error) => const Icon(
-                  Icons.error,
-                  color: Colors.red,
+                errorWidget: (context, url, error) => Container(
+                  width: Get.size.width * 0.2,
+                  height: Get.size.width * 0.2,
+                  color: Colors.transparent,
+                  child: const Icon(
+                    Icons.error,
+                    color: Colors.red,
+                  ),
                 ),
               )),
         );
@@ -313,11 +326,11 @@ class ChatScreenViewModel extends GetxController {
       case VideoMessage:
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 10),
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(width: 0.5)),
           child: Container(
-            width: Get.size.width * 0.7,
+            constraints: BoxConstraints(
+              maxWidth: Get.size.width * 0.7,
+              // maxHeight: Get.size.width,
+            ),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
               color: Colors.white,
@@ -394,7 +407,7 @@ class ChatScreenViewModel extends GetxController {
                   child: Column(
                     children: [
                       Text(
-                        e.fileUrl,
+                        getFileName(e.fileUrl),
                         style: const TextStyle(
                           color: Colors.white,
                           fontStyle: FontStyle.italic,
@@ -426,10 +439,9 @@ class ChatScreenViewModel extends GetxController {
         padding: const EdgeInsets.all(20),
         decoration: const BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.only(topRight: Radius.circular(16), topLeft: Radius.circular(16)),
-            boxShadow: [
-              BoxShadow(color: Colors.black45, blurRadius: 10)
-            ]),
+            borderRadius: BorderRadius.only(
+                topRight: Radius.circular(16), topLeft: Radius.circular(16)),
+            boxShadow: [BoxShadow(color: Colors.black45, blurRadius: 10)]),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -515,6 +527,7 @@ class ChatScreenViewModel extends GetxController {
     });
   }
 
+  // speech to text
   void initSpeech() async {
     if (await Permission.microphone.request().isGranted) {
       speechToText = SpeechToText();
@@ -544,5 +557,204 @@ class ChatScreenViewModel extends GetxController {
     lastWords.value = result.recognizedWords;
     messageController.text = lastWords.value;
     // debugPrint("----------Detect: ${lastWords.value}");
+  }
+
+  //send 4 other type off message
+  Future<Stream<TaskSnapshot>> pickAndUpload(
+      FileType type, String savingPath) async {
+    isUploading.value = true;
+    FilePickerResult? result = await FilePicker.platform
+        .pickFiles(dialogTitle: 'Select File', type: type);
+    if (result != null) {
+      update();
+      var stream = await FirebaseStorageService.uploadFile(
+          File(result.files.single.path!), savingPath);
+      stream!.listen((event) {}, onError: (e) {
+        isUploading.value = false;
+        update();
+        Get.showSnackbar(
+            GetBar(message: 'Send failed', duration: const Duration(seconds: 1)));
+      });
+      return stream;
+    }else{
+      isUploading.value = false;
+      update();
+    }
+    return const Stream.empty();
+  }
+
+  Future<void> sendImage() async {
+    var uploadStream = await pickAndUpload(FileType.image, 'images/');
+    uploadStream.listen(
+        (event) async {
+          uploadProgress.value = event.bytesTransferred / event.totalBytes;
+          update();
+          if (uploadProgress.value == 1.0 && event.state == TaskState.success) {
+            var url = await event.ref.getDownloadURL();
+            logWarning(
+                '----------Upload complete: ${await event.ref.getDownloadURL()}');
+            if (url != '') {
+              sendMessage(ImageMessage(
+                imageUrl: url,
+                senderUid: Get.find<UserRepository>()
+                    .userProvider
+                    .value
+                    .currentUser!
+                    .uid,
+                receiverUid: their.value.uid,
+                createAt: Timestamp.now(),
+                isRecallByReceiver: false,
+                isRecallBySender: false,
+                isRemoveBySender: false,
+              ));
+            } else {
+              debugPrint('Null url: $url');
+            }
+            uploadProgress.value = 0.0;
+            isUploading.value = false;
+            update();
+          }
+        },
+        onDone: () async {},
+        onError: (e) {
+          logError('----------Upload error: $e');
+        });
+  }
+
+  Future<void> sendAudio() async {
+    var uploadStream = await pickAndUpload(FileType.audio, 'audios/');
+    uploadStream.listen(
+        (event) async {
+          uploadProgress.value = event.bytesTransferred / event.totalBytes;
+          update();
+          if (uploadProgress.value == 1.0 && event.state == TaskState.success) {
+            var url = await event.ref.getDownloadURL();
+            logWarning(
+                '----------Upload complete: ${await event.ref.getDownloadURL()}');
+            if (url != '') {
+              sendMessage(AudioMessage(
+                senderUid: Get.find<UserRepository>()
+                    .userProvider
+                    .value
+                    .currentUser!
+                    .uid,
+                receiverUid: their.value.uid,
+                createAt: Timestamp.now(),
+                isRecallByReceiver: false,
+                isRecallBySender: false,
+                isRemoveBySender: false,
+                audioUrl: 'url',
+              ));
+            }
+            uploadProgress.value = 0.0;
+            isUploading.value = false;
+            update();
+          }
+        },
+        onDone: () async {},
+        onError: (e) {
+          logError('----------Upload error: $e');
+        });
+  }
+
+  Future<void> sendVideo() async {
+    var uploadStream = await pickAndUpload(FileType.video, 'videos/');
+    uploadStream.listen(
+        (event) async {
+          uploadProgress.value = event.bytesTransferred / event.totalBytes;
+          update();
+          if (uploadProgress.value == 1.0 && event.state == TaskState.success) {
+            var url = await event.ref.getDownloadURL();
+            logWarning(
+                '----------Upload complete: ${await event.ref.getDownloadURL()}');
+            if (url != '') {
+              sendMessage(VideoMessage(
+                videoUrl: url,
+                senderUid: Get.find<UserRepository>()
+                    .userProvider
+                    .value
+                    .currentUser!
+                    .uid,
+                receiverUid: their.value.uid,
+                createAt: Timestamp.now(),
+                isRecallByReceiver: false,
+                isRecallBySender: false,
+                isRemoveBySender: false,
+              ));
+            }
+            uploadProgress.value = 0.0;
+            isUploading.value = false;
+            update();
+          }
+        },
+        onDone: () async {},
+        onError: (e) {
+          logError('----------Upload error: $e');
+        });
+  }
+
+  Future<void> sendFile() async {
+    var uploadStream = await pickAndUpload(FileType.any, 'others/');
+    uploadStream.listen(
+        (event) async {
+          uploadProgress.value = event.bytesTransferred / event.totalBytes;
+          update();
+          if (uploadProgress.value == 1.0 && event.state == TaskState.success) {
+            var url = await event.ref.getDownloadURL();
+            logWarning(
+                '----------Upload complete: ${await event.ref.getDownloadURL()}');
+            if (url != '') {
+              sendMessage(FileMessage(
+                fileUrl: url,
+                senderUid: Get.find<UserRepository>()
+                    .userProvider
+                    .value
+                    .currentUser!
+                    .uid,
+                receiverUid: their.value.uid,
+                createAt: Timestamp.now(),
+                isRecallByReceiver: false,
+                isRecallBySender: false,
+                isRemoveBySender: false,
+              ));
+            }
+            uploadProgress.value = 0.0;
+            isUploading.value = false;
+            update();
+          }
+        },
+        onDone: () async {},
+        onError: (e) {
+          logError('----------Upload error: $e');
+        });
+  }
+
+  void sendMessage(dynamic message) {
+    switch (message.runtimeType) {
+      case String:
+        if (message != '') {
+          CloudFirestoreService().sendMessage(TextMessage(
+            content: message,
+            senderUid:
+                Get.find<UserRepository>().userProvider.value.currentUser!.uid,
+            receiverUid: their.value.uid,
+            createAt: Timestamp.now(),
+            isRemoveBySender: false,
+            isRecallByReceiver: false,
+            isRecallBySender: false,
+          ));
+        }
+        break;
+      default:
+        CloudFirestoreService().sendMessage(message);
+        break;
+    }
+  }
+
+  String getFileName(String url) {
+    RegExp regExp = new RegExp(r'.+(\/|%2F)(.+)\?.+');
+    //This Regex won't work if you remove ?alt...token
+    var match = regExp.allMatches(url).elementAt(0);
+    return Uri.decodeFull(match.group(2)!);
   }
 }
