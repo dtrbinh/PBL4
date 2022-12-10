@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dlinks/data/model/ImageMessage.dart';
 import 'package:dlinks/data/repository/UserRepository.dart';
 import 'package:dlinks/features/chat_screen/ChatScreenViewModel.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get/get.dart';
@@ -197,59 +199,89 @@ class _ChatScreenViewState extends State<ChatScreenView> {
           )
         ],
       ),
-      child: Slidable(
-        startActionPane: ActionPane(
-          dragDismissible: false,
-          extentRatio: 0.3,
-          motion: const ScrollMotion(),
-          children: [
-            _sendFileComponent(),
-            _sendImageComponent(),
-            _speechToTextComponent(),
-          ],
-        ),
-        child: Row(
-          children: [
-            IconButton(onPressed: () {}, icon: const Icon(Icons.add)),
-            Expanded(
-              child: Container(
-                color: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 5),
-                margin: const EdgeInsets.only(right: 16),
-                child: TextField(
-                  onTap: () async {
-                    await Future.delayed(const Duration(milliseconds: 200), () {
-                      viewModel.scrollDown();
-                    });
-                  },
-                  minLines: 1,
-                  maxLines: 5,
-                  controller: viewModel.messageController,
-                  decoration: InputDecoration(
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 10),
-                      suffixIcon: IconButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: () {
-                          viewModel.sendMessage(
-                              viewModel.messageController.value.text);
-                          viewModel.messageController.text = '';
-                        },
-                        icon: const Icon(Icons.send),
-                      ),
-                      hintText: "Type a message",
-                      border: const OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black, width: 1),
-                          borderRadius: BorderRadius.all(Radius.circular(8)))),
-                  onSubmitted: (content) {
-                    viewModel.sendMessage(content);
-                    viewModel.messageController.text = '';
-                  },
-                ),
-              ),
+      child: Column(
+        children: [
+          GetBuilder<ChatScreenViewModel>(
+            builder: (controller) => Visibility(
+                visible: viewModel.isUploading.value,
+                child: LinearProgressIndicator(
+                  value: viewModel.uploadProgress.value,
+                  backgroundColor: Colors.grey,
+                  color: Colors.blue,
+                  minHeight: 2,
+                )),
+          ),
+          Slidable(
+            startActionPane: ActionPane(
+              dragDismissible: false,
+              extentRatio: 0.6,
+              motion: const ScrollMotion(),
+              children: [
+                _sendFileComponent(),
+                _sendAudioComponent(),
+                _sendVideoComponent(),
+                _sendImageComponent(),
+                _speechToTextComponent(),
+              ],
             ),
-          ],
-        ),
+            child: Builder(
+              builder: (BuildContext slidableContext) {
+                return Row(
+                  children: [
+                    IconButton(
+                        onPressed: () {
+                          if (Slidable.of(slidableContext)!
+                              .enableStartActionPane) {
+                            Slidable.of(slidableContext)?.openStartActionPane();
+                          } else {}
+                        },
+                        icon: const Icon(Icons.add)),
+                    Expanded(
+                      child: Container(
+                        color: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 5),
+                        margin: const EdgeInsets.only(right: 16),
+                        child: TextField(
+                          onTap: () async {
+                            await Future.delayed(
+                                const Duration(milliseconds: 200), () {
+                              viewModel.scrollDown();
+                            });
+                          },
+                          minLines: 1,
+                          maxLines: 5,
+                          controller: viewModel.messageController,
+                          decoration: InputDecoration(
+                              contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 10),
+                              suffixIcon: IconButton(
+                                padding: EdgeInsets.zero,
+                                onPressed: () {
+                                  viewModel.sendMessage(
+                                      viewModel.messageController.value.text);
+                                  viewModel.messageController.text = '';
+                                },
+                                icon: const Icon(Icons.send),
+                              ),
+                              hintText: "Type a message",
+                              border: const OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Colors.black, width: 1),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(8)))),
+                          onSubmitted: (content) {
+                            viewModel.sendMessage(content);
+                            viewModel.messageController.text = '';
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -269,8 +301,8 @@ class _ChatScreenViewState extends State<ChatScreenView> {
 
   Widget _sendImageComponent() {
     return SlidableAction(
-      onPressed: (context) {
-
+      onPressed: (context) async {
+        await viewModel.sendImage();
       },
       backgroundColor: Colors.transparent,
       foregroundColor: Colors.black,
@@ -278,9 +310,33 @@ class _ChatScreenViewState extends State<ChatScreenView> {
     );
   }
 
+  Widget _sendVideoComponent() {
+    return SlidableAction(
+      onPressed: (context) async {
+        await viewModel.sendVideo();
+      },
+      backgroundColor: Colors.transparent,
+      foregroundColor: Colors.black,
+      icon: Icons.video_collection,
+    );
+  }
+
+  Widget _sendAudioComponent() {
+    return SlidableAction(
+      onPressed: (context) async {
+        await viewModel.sendAudio();
+      },
+      backgroundColor: Colors.transparent,
+      foregroundColor: Colors.black,
+      icon: Icons.audio_file,
+    );
+  }
+
   Widget _sendFileComponent() {
     return SlidableAction(
-      onPressed: (context) {},
+      onPressed: (context) {
+        viewModel.sendFile();
+      },
       backgroundColor: Colors.transparent,
       foregroundColor: Colors.black,
       icon: Icons.file_upload,
