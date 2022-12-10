@@ -20,12 +20,9 @@ void main() async {
   ));
 
   await FlutterDownloader.initialize(
-      debug: false,
-      ignoreSsl:
-          true // option: set to false to disable working with http links (default: false)
+      debug: false, ignoreSsl: true // option: set to false to disable working with http links (default: false)
       );
-  SystemChrome.setPreferredOrientations(
-      [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
 
   runApp(const DLinksApplication());
 }
