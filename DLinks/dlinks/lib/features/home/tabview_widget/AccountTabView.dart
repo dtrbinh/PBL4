@@ -14,7 +14,7 @@ class AccountTabView extends StatefulWidget {
 }
 
 class _AccountTabViewState extends State<AccountTabView> {
-  final viewModel = Get.find<AccountTabViewModel>();
+  final viewModel = Get.put(AccountTabViewModel());
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -23,10 +23,10 @@ class _HomeViewState extends State<HomeView> {
   void initState() {
     super.initState();
 
-    Get.put(MessageTabViewModel());
-    Get.put(ContactTabViewModel());
-    Get.put(DownloadManagerViewModel());
-    Get.put(AccountTabViewModel());
+    // Get.put(MessageTabViewModel());
+    // Get.put(ContactTabViewModel());
+    // Get.put(DownloadManagerViewModel());
+    // Get.put(AccountTabViewModel());
 
   }
 

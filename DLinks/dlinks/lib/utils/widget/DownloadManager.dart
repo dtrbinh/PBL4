@@ -49,21 +49,22 @@ class DownloadManager {
   }
 
   void startDownload() async {
-    final status = await Permission.storage.request();
-    if (status.isGranted) {
+    final storage = await Permission.storage.request();
+    final manageExternalStorage = await Permission.manageExternalStorage.request();
+    if (storage.isGranted && manageExternalStorage.isGranted) {
       //TODO: config ios download path
       if (Platform.isAndroid) {
         String? taskId;
         try {
           //TODO: implements directory for iOS
-          await Directory('/storage/emulated/0/Download/DLinks/')
+          var dir = await Directory('/storage/emulated/0/Download/DLinks/')
               .create(recursive: true);
           taskId = await FlutterDownloader.enqueue(
             url: url,
-            savedDir: '/storage/emulated/0/Download/DLinks/',
+            savedDir: dir.path,
             showNotification: true,
             openFileFromNotification: true,
-            // saveInPublicStorage: true,
+            // saveInPublicStorage: false,
           );
         } catch (error) {
           Get.snackbar('Download error.', error.toString(),

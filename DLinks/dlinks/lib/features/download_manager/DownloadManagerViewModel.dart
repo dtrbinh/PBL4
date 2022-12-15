@@ -7,7 +7,7 @@ import 'package:get/get.dart';
 class DownloadManagerViewModel extends GetxController {
   FileManagerController controller = FileManagerController();
 
-  RxString title = 'Dlinks'.obs;
+  RxString title = 'DLinks'.obs;
   late RxList entities = [].obs;
 
   void initData() {
