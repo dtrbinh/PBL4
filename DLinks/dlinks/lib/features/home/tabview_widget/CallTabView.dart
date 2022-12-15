@@ -19,7 +19,7 @@ class _CallTabViewState
     extends BaseWidgetState<CallTabView, CallTabViewModel> {
   @override
   Widget getView() {
-    return const Scaffold(body: Center(child: Text('Call')));
+    return const Scaffold(body: Center(child: Text('Coming soon')));
   }
 
   @override

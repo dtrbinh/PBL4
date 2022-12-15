@@ -21,7 +21,7 @@ class DownloadManager {
       DownloadTaskStatus status = data[1];
       int progress = data[2];
       if (status == DownloadTaskStatus.complete) {
-        Get.snackbar('Download complete.', '',
+        Get.snackbar('Download complete', '',
             duration: const Duration(seconds: 2),
             colorText: Colors.white,
             backgroundColor: Colors.black,
@@ -29,7 +29,7 @@ class DownloadManager {
             margin: const EdgeInsets.all(20));
         IsolateNameServer.removePortNameMapping('downloader_send_port');
       } else if (status == DownloadTaskStatus.failed) {
-        Get.snackbar('Download failed.', 'This file already exist',
+        Get.snackbar('Download failed', 'Please try later',
             duration: const Duration(seconds: 2),
             colorText: Colors.white,
             backgroundColor: Colors.black,
@@ -38,7 +38,6 @@ class DownloadManager {
         IsolateNameServer.removePortNameMapping('downloader_send_port');
       } else {}
     });
-    FlutterDownloader.registerCallback(downloadCallback);
   }
 
   @pragma('vm:entry-point')
@@ -51,7 +50,6 @@ class DownloadManager {
 
   void startDownload() async {
     final status = await Permission.storage.request();
-
     if (status.isGranted) {
       //TODO: config ios download path
       if (Platform.isAndroid) {
@@ -68,18 +66,18 @@ class DownloadManager {
             // saveInPublicStorage: true,
           );
         } catch (error) {
-          Get.snackbar('Download error.', '',
+          Get.snackbar('Download error.', error.toString(),
               snackPosition: SnackPosition.BOTTOM);
           logError("---------Internal error: $error");
           FlutterDownloader.remove(
               taskId: taskId ?? '', shouldDeleteContent: false);
         }
       } else {
-        Get.snackbar('Unsupported download on iOS.', '',
+        Get.snackbar('Not supported download on iOS.', '',
             snackPosition: SnackPosition.BOTTOM);
       }
     } else {
-      print('Permission Denied');
+      debugPrint('----------Internal Error: Download Permission Denied');
     }
   }
 }

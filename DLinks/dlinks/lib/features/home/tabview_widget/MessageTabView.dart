@@ -16,7 +16,7 @@ class MessageTabView extends StatefulWidget {
 }
 
 class _MessageTabViewState extends State<MessageTabView> {
-  final MessageTabViewModel viewModel = Get.put(MessageTabViewModel());
+  final MessageTabViewModel viewModel = Get.find<MessageTabViewModel>();
 
   @override
   void initState() {
@@ -167,8 +167,9 @@ class _MessageTabViewState extends State<MessageTabView> {
                                         fontSize: 14),
                                     overflow: TextOverflow.ellipsis,
                                   );
+                                } else{
+                                  return const Text("...");
                                 }
-                                return const Text("Loading...");
                               });
                         } else {
                           return const SizedBox.shrink();

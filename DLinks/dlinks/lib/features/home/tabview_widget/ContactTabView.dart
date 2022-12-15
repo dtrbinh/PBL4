@@ -13,7 +13,7 @@ class ContactTabView extends StatefulWidget {
 }
 
 class _ContactTabViewState extends State<ContactTabView> {
-  final ContactTabViewModel viewModel = Get.put(ContactTabViewModel());
+  final ContactTabViewModel viewModel = Get.find<ContactTabViewModel>();
 
   @override
   void initState() {

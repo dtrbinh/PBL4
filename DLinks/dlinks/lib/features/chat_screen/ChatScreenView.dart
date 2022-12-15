@@ -32,7 +32,12 @@ class _ChatScreenViewState extends State<ChatScreenView> {
     return Scaffold(
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        leadingWidth: 30,
+        leading: IconButton(
+          padding: const EdgeInsets.only(left: 20),
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+          onPressed: () => Get.back(),
+        ),
+        leadingWidth: 40,
         backgroundColor: Colors.black,
         title: Obx(() => Row(
               children: [
@@ -112,6 +117,7 @@ class _ChatScreenViewState extends State<ChatScreenView> {
               onPressed: () {},
               icon: const Icon(
                 Icons.more_vert,
+                color: Colors.white,
               ))
         ],
       ),
