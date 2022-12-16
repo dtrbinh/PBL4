@@ -6,13 +6,14 @@ import 'package:dlinks/utils/error_manager/ErrorLogger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:get/get.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-class DownloadManager {
+class DownloadTaskManager {
   late String url;
   late ReceivePort port;
 
-  DownloadManager(this.url) {
+  DownloadTaskManager(this.url) {
     port = ReceivePort();
     IsolateNameServer.registerPortWithName(
         port.sendPort, 'downloader_send_port');
@@ -38,6 +39,7 @@ class DownloadManager {
         IsolateNameServer.removePortNameMapping('downloader_send_port');
       } else {}
     });
+    FlutterDownloader.registerCallback(DownloadTaskManager.downloadCallback);
   }
 
   @pragma('vm:entry-point')
@@ -50,21 +52,27 @@ class DownloadManager {
 
   void startDownload() async {
     final storage = await Permission.storage.request();
-    final manageExternalStorage = await Permission.manageExternalStorage.request();
+    final manageExternalStorage =
+        await Permission.manageExternalStorage.request();
     if (storage.isGranted && manageExternalStorage.isGranted) {
       //TODO: config ios download path
       if (Platform.isAndroid) {
         String? taskId;
         try {
           //TODO: implements directory for iOS
-          var dir = await Directory('/storage/emulated/0/Download/DLinks/')
-              .create(recursive: true);
+          var docsDir = await getExternalStorageDirectory();
+          if (docsDir == null) {
+            await Directory(
+                    '/storage/emulated/0/Android/data/com.example.dlinks/files')
+                .create(recursive: true);
+          }
           taskId = await FlutterDownloader.enqueue(
             url: url,
-            savedDir: dir.path,
+            savedDir:
+                docsDir?.path ?? (await getExternalStorageDirectory())!.path,
             showNotification: true,
             openFileFromNotification: true,
-            // saveInPublicStorage: false,
+            // saveInPublicStorage: true,
           );
         } catch (error) {
           Get.snackbar('Download error.', error.toString(),

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:file_manager/file_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:path_provider/path_provider.dart';
 
 class DownloadManagerViewModel extends GetxController {
   FileManagerController controller = FileManagerController();
@@ -12,8 +13,9 @@ class DownloadManagerViewModel extends GetxController {
 
   void initData() {
     titleListener();
+    var defaultPath = '/storage/emulated/0/Android/data/com.example.dlinks/files';
     if (Platform.isAndroid) {
-      controller.setCurrentPath = "/storage/emulated/0/Download/DLinks/";
+      controller.setCurrentPath = defaultPath;
     } else if (Platform.isIOS) {
     } else {
       controller = FileManagerController();

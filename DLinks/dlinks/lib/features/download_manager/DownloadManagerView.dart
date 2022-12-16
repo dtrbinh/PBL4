@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../utils/AppColor.dart';
 import 'DownloadManagerViewModel.dart';
@@ -39,29 +40,45 @@ class _DownloadManagerViewState extends State<DownloadManagerView> {
           actions: [
             IconButton(
               onPressed: () => createFolder(context),
-              icon: const Icon(Icons.create_new_folder_outlined),
+              icon: const Icon(
+                Icons.create_new_folder_outlined,
+                color: Colors.white,
+              ),
             ),
             IconButton(
               onPressed: () => sort(context),
-              icon: const Icon(Icons.sort_rounded),
+              icon: const Icon(
+                Icons.sort_rounded,
+                color: Colors.white,
+              ),
             ),
             IconButton(
               onPressed: () => selectStorage(context),
-              icon: const Icon(Icons.sd_storage),
+              icon: const Icon(
+                Icons.sd_storage,
+                color: Colors.white,
+              ),
             )
           ],
           title: GetBuilder<DownloadManagerViewModel>(
             builder: (model) {
-              return Text(viewModel.title.value);
+              return Text(
+                viewModel.title.value,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              );
             },
           ),
           leadingWidth: 40,
           leading: IconButton(
             padding: const EdgeInsets.only(left: 20),
-            icon: const Icon(Icons.arrow_back_ios),
+            icon: const Icon(
+              Icons.arrow_back_ios,
+              color: Colors.white,
+            ),
             onPressed: () async {
-              debugPrint(viewModel.controller.getCurrentPath);
-              if (viewModel.controller.getCurrentPath == "/storage/emulated/0/Download/DLinks/" ||
+              // debugPrint(viewModel.controller.getCurrentPath);
+              if (viewModel.controller.getCurrentPath ==
+                      (await getExternalStorageDirectory())?.path ||
                   await viewModel.controller.isRootDirectory()) {
                 Get.find<HomeViewModel>().changeTab(0);
               } else {
@@ -90,16 +107,21 @@ class _DownloadManagerViewState extends State<DownloadManagerView> {
                   clipBehavior: Clip.hardEdge,
                   height: 80,
                   margin: const EdgeInsets.only(left: 16, right: 16, top: 16),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 15)],
+                    boxShadow: const [
+                      BoxShadow(color: Colors.black12, blurRadius: 15)
+                    ],
                     borderRadius: BorderRadius.circular(18),
                   ),
                   child: ListTile(
                     leading: Icon(viewModel.getIcon(entity)),
                     title: Text(
-                      FileManager.isFile(entity) ? viewModel.getFilename(entity) : FileManager.basename(entity),
+                      FileManager.isFile(entity)
+                          ? viewModel.getFilename(entity)
+                          : FileManager.basename(entity),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -139,15 +161,21 @@ class _DownloadManagerViewState extends State<DownloadManagerView> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text("File name: ${viewModel.getFilename(entity)}"),
-                                    Text("File size: ${FileManager.formatBytes(fileSize)}"),
-                                    Text("Last modified: ${lastModified.toString()}"),
+                                    Text(
+                                        "File name: ${viewModel.getFilename(entity)}"),
+                                    Text(
+                                        "File size: ${FileManager.formatBytes(fileSize)}"),
+                                    Text(
+                                        "Last modified: ${lastModified.toString()}"),
                                     const SizedBox(
                                       height: 10,
                                     ),
                                     Center(
                                       child: ElevatedButton(
-                                          style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.black)),
+                                          style: ButtonStyle(
+                                              backgroundColor:
+                                                  MaterialStateProperty.all(
+                                                      Colors.black)),
                                           onPressed: () {
                                             Get.back();
                                             // debugPrint(entity.path);
@@ -155,7 +183,8 @@ class _DownloadManagerViewState extends State<DownloadManagerView> {
                                           },
                                           child: const Text(
                                             'Open in File Explorer',
-                                            style: TextStyle(color: Colors.white),
+                                            style:
+                                                TextStyle(color: Colors.white),
                                           )),
                                     )
                                   ],
@@ -308,9 +337,11 @@ class _DownloadManagerViewState extends State<DownloadManagerView> {
                   onPressed: () async {
                     try {
                       // Create Folder
-                      await FileManager.createFolder(viewModel.controller.getCurrentPath, folderName.text);
+                      await FileManager.createFolder(
+                          viewModel.controller.getCurrentPath, folderName.text);
                       // Open Created Folder
-                      viewModel.controller.setCurrentPath = "${viewModel.controller.getCurrentPath}/${folderName.text}";
+                      viewModel.controller.setCurrentPath =
+                          "${viewModel.controller.getCurrentPath}/${folderName.text}";
                     } catch (e) {}
 
                     Get.back();

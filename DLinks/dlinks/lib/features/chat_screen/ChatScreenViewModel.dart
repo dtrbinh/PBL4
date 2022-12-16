@@ -12,7 +12,7 @@ import 'package:dlinks/data/services/FirebaseStorageService.dart';
 import 'package:dlinks/features/home/tabview_widget/MessageTabViewModel.dart';
 import 'package:dlinks/utils/error_manager/ErrorLogger.dart';
 import 'package:dlinks/utils/widget/CommonWidget.dart';
-import 'package:dlinks/utils/widget/DownloadManager.dart';
+import 'package:dlinks/utils/widget/DownloadTaskManager.dart';
 import 'package:dlinks/utils/widget/VideoPlayerView.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -219,7 +219,7 @@ class ChatScreenViewModel extends GetxController {
                       child: IconButton(
                         padding: EdgeInsets.zero,
                         onPressed: () {
-                          DownloadManager(e.imageUrl).startDownload();
+                          DownloadTaskManager(e.imageUrl).startDownload();
                         },
                         icon: const Icon(
                           Icons.download,
@@ -359,7 +359,7 @@ class ChatScreenViewModel extends GetxController {
                               ),
                               IconButton(
                                   onPressed: () async {
-                                    DownloadManager(e.fileUrl).startDownload();
+                                    DownloadTaskManager(e.fileUrl).startDownload();
                                   },
                                   icon: const Icon(Icons.download)),
                             ],
@@ -468,16 +468,16 @@ class ChatScreenViewModel extends GetxController {
                       onTap: () {
                         switch (e.runtimeType) {
                           case ImageMessage:
-                            DownloadManager(e.imageUrl).startDownload();
+                            DownloadTaskManager(e.imageUrl).startDownload();
                             break;
                           case VideoMessage:
-                            DownloadManager(e.videoUrl).startDownload();
+                            DownloadTaskManager(e.videoUrl).startDownload();
                             break;
                           case AudioMessage:
-                            DownloadManager(e.audioUrl).startDownload();
+                            DownloadTaskManager(e.audioUrl).startDownload();
                             break;
                           case FileMessage:
-                            DownloadManager(e.fileUrl).startDownload();
+                            DownloadTaskManager(e.fileUrl).startDownload();
                             break;
                         }
                         Get.back();
