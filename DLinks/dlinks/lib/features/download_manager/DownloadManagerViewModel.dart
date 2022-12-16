@@ -72,7 +72,7 @@ class DownloadManagerViewModel extends GetxController {
         case "pptx":
           return Icons.feed;
         default:
-          return Icons.feed;
+          return Icons.feed_outlined;
       }
     } else {
       return Icons.folder;
@@ -82,4 +82,21 @@ class DownloadManagerViewModel extends GetxController {
   String getFilename(FileSystemEntity entity){
     return "${FileManager.basename(entity)}.${FileManager.getFileExtension(entity)}";
   }
+
+  FileType getFileTypeFromPath(FileSystemEntity entity){
+    var icon = getIcon(entity);
+    if (icon == Icons.image) {
+      return FileType.Image;
+    } else if (icon == Icons.audio_file){
+      return FileType.Audio;
+    } else if (icon == Icons.video_file){
+      return FileType.Video;
+    } else if (icon == Icons.feed){
+      return FileType.Document;
+    } else {
+      return FileType.Other;
+    }
+  }
 }
+
+enum FileType {Image, Audio, Video, Document, Other}

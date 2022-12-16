@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:dlinks/features/home/HomeViewModel.dart';
 import 'package:file_manager/file_manager.dart';
@@ -7,6 +8,8 @@ import 'package:get/get.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:video_player/video_player.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 
 import '../../utils/AppColor.dart';
 import 'DownloadManagerViewModel.dart';
@@ -108,7 +111,7 @@ class _DownloadManagerViewState extends State<DownloadManagerView> {
                   height: 80,
                   margin: const EdgeInsets.only(left: 16, right: 16, top: 16),
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     boxShadow: const [
@@ -117,7 +120,9 @@ class _DownloadManagerViewState extends State<DownloadManagerView> {
                     borderRadius: BorderRadius.circular(18),
                   ),
                   child: ListTile(
-                    leading: Icon(viewModel.getIcon(entity)),
+                    leading: SizedBox(
+                        width: 80,
+                        child: FittedBox(child: itemLeading(entity))),
                     title: Text(
                       FileManager.isFile(entity)
                           ? viewModel.getFilename(entity)
@@ -128,7 +133,6 @@ class _DownloadManagerViewState extends State<DownloadManagerView> {
                     subtitle: subtitle(entity),
                     onLongPress: () {
                       //TODO: implements some things about action longpress
-
                       if (FileManager.isFile(entity)) {
                       } else {}
                     },
@@ -217,6 +221,40 @@ class _DownloadManagerViewState extends State<DownloadManagerView> {
     );
   }
 
+  Widget itemLeading(FileSystemEntity entity) {
+    final fileType = viewModel.getFileTypeFromPath(entity);
+    switch (fileType) {
+      case FileType.Image:
+        return Image.file(File(entity.path));
+      case FileType.Audio:
+        return Icon(viewModel.getIcon(entity));
+      case FileType.Video:
+        var uint8list = VideoThumbnail.thumbnailData(
+          video: entity.path,
+          imageFormat: ImageFormat.JPEG,
+          maxWidth: 100,
+          quality: 50,
+        );
+        return FutureBuilder<Uint8List?>(
+            future: uint8list,
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return Stack(
+                  children: [Image.memory(snapshot.data!)],
+                );
+              } else {
+                return Icon(viewModel.getIcon(entity));
+              }
+            });
+      case FileType.Document:
+        return Icon(viewModel.getIcon(entity));
+      case FileType.Other:
+        return Icon(viewModel.getIcon(entity));
+      default:
+        return Icon(viewModel.getIcon(entity));
+    }
+  }
+
   Widget subtitle(FileSystemEntity entity) {
     return FutureBuilder<FileStat>(
       future: entity.stat(),
@@ -224,7 +262,6 @@ class _DownloadManagerViewState extends State<DownloadManagerView> {
         if (snapshot.hasData) {
           if (entity is File) {
             int size = snapshot.data!.size;
-
             return Text(
               FileManager.formatBytes(size),
             );

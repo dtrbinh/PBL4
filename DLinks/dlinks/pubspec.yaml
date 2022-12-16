@@ -65,6 +65,7 @@ dependencies:
   file_manager: ^1.0.1
   file_picker: ^4.6.1
   open_file: ^3.2.1
+  video_thumbnail: ^0.5.3
 
   #network
   connectivity_plus: ^2.3.9
