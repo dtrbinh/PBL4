@@ -122,6 +122,7 @@ class _DownloadManagerViewState extends State<DownloadManagerView> {
                   child: ListTile(
                     leading: SizedBox(
                         width: 80,
+                        height: 80,
                         child: FittedBox(child: itemLeading(entity))),
                     title: Text(
                       FileManager.isFile(entity)
@@ -231,9 +232,8 @@ class _DownloadManagerViewState extends State<DownloadManagerView> {
       case FileType.Video:
         var uint8list = VideoThumbnail.thumbnailData(
           video: entity.path,
-          imageFormat: ImageFormat.JPEG,
+          imageFormat: ImageFormat.PNG,
           maxWidth: 100,
-          quality: 50,
         );
         return FutureBuilder<Uint8List?>(
             future: uint8list,
