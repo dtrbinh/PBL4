@@ -2,10 +2,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dlinks/data/services/CloudFirestoreService.dart';
 import 'package:dlinks/features/chat_screen/ChatScreenView.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get/get.dart';
 
 import '../../../data/model/ChatUser.dart';
 import '../../../data/model/Message.dart';
+import '../../../utils/AppColor.dart';
 import 'MessageTabViewModel.dart';
 
 class MessageTabView extends StatefulWidget {
@@ -54,8 +56,7 @@ class _MessageTabViewState extends State<MessageTabView> {
                         decoration: InputDecoration(
                             hintText: "Search...",
                             border: OutlineInputBorder(
-                                borderSide: const BorderSide(
-                                    color: Colors.black, width: 1),
+                                borderSide: const BorderSide(color: Colors.black, width: 1),
                                 borderRadius: BorderRadius.circular(8))),
                       ),
                     ),
@@ -84,11 +85,19 @@ class _MessageTabViewState extends State<MessageTabView> {
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: EdgeInsets.zero,
                     child: Obx(
-                      () => Column(
-                        children: viewModel.userInbox.value
-                            .map((e) => _dialogCard(e))
-                            .toList(),
-                      ),
+                      () => viewModel.userInbox.value.isNotEmpty
+                          ? Column(
+                              children: viewModel.userInbox.value.map((e) => _dialogCard(e)).toList(),
+                            )
+                          : SizedBox(
+                              width: Get.width,
+                              height: Get.height/2,
+                              child: Center(
+                                child: SpinKitFadingCircle(
+                                  size: Get.width / 5,
+                                  color: AppColor.BLACK,
+                                ),
+                              )),
                     ),
                   ),
                 ),
@@ -141,34 +150,30 @@ class _MessageTabViewState extends State<MessageTabView> {
                 children: [
                   Text(
                     their.displayName!,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 18),
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(right: 10.0),
                     child: FutureBuilder(
-                      future: CloudFirestoreService().getLastestMessage(
-                          viewModel.c.userProvider.value.currentUser!.uid,
-                          their.uid),
+                      future: CloudFirestoreService()
+                          .getLastestMessage(viewModel.c.userProvider.value.currentUser!.uid, their.uid),
                       builder: (context, msgSnapshot) {
                         if (msgSnapshot.hasData) {
                           var msg = msgSnapshot.data as Message;
                           return FutureBuilder(
-                              future: CloudFirestoreService()
-                                  .getChatUserByUid(msg.senderUid),
+                              future: CloudFirestoreService().getChatUserByUid(msg.senderUid),
                               builder: (context, userSnapshot) {
                                 if (userSnapshot.hasData) {
                                   var user = userSnapshot.data as ChatUser;
                                   return Text(
                                     "${user.displayName!.split(' ')[0]}: ${msgSnapshot.data}",
                                     maxLines: 1,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: 14),
+                                    style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 14),
                                     overflow: TextOverflow.ellipsis,
                                   );
+                                } else {
+                                  return const Text("...");
                                 }
-                                return const Text("Loading...");
                               });
                         } else {
                           return const SizedBox.shrink();

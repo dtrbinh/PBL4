@@ -1,9 +1,13 @@
 import 'package:dlinks/features/home/HomeViewModel.dart';
+import 'package:dlinks/features/home/tabview_widget/AccountTabViewModel.dart';
+import 'package:dlinks/features/home/tabview_widget/ContactTabViewModel.dart';
+import 'package:dlinks/features/home/tabview_widget/MessageTabViewModel.dart';
 import 'package:dlinks/utils/error_manager/ErrorLogger.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../data/services/LocalCacheService.dart';
+import '../download_manager/DownloadManagerViewModel.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -18,6 +22,12 @@ class _HomeViewState extends State<HomeView> {
   @override
   void initState() {
     super.initState();
+
+    // Get.put(MessageTabViewModel());
+    // Get.put(ContactTabViewModel());
+    // Get.put(DownloadManagerViewModel());
+    // Get.put(AccountTabViewModel());
+
   }
 
   @override
@@ -41,11 +51,11 @@ class _HomeViewState extends State<HomeView> {
                 icon: Icon(Icons.message),
                 label: 'Message',
               ),
-              BottomNavigationBarItem(
-                backgroundColor: Colors.black,
-                icon: Icon(Icons.call),
-                label: 'Call',
-              ),
+              // BottomNavigationBarItem(
+              //   backgroundColor: Colors.black,
+              //   icon: Icon(Icons.call),
+              //   label: 'Call',
+              // ),
               BottomNavigationBarItem(
                 backgroundColor: Colors.black,
                 icon: Icon(Icons.contact_page),
@@ -53,9 +63,15 @@ class _HomeViewState extends State<HomeView> {
               ),
               BottomNavigationBarItem(
                 backgroundColor: Colors.black,
+                icon: Icon(Icons.folder),
+                label: 'File',
+              ),
+              BottomNavigationBarItem(
+                backgroundColor: Colors.black,
                 icon: Icon(Icons.account_circle),
                 label: 'Account',
               ),
+
             ],
           ),
         ),

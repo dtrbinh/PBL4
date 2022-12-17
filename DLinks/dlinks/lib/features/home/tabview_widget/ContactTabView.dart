@@ -39,8 +39,7 @@ class _ContactTabViewState extends State<ContactTabView> {
                 decoration: InputDecoration(
                     hintText: "Search other user",
                     border: OutlineInputBorder(
-                        borderSide:
-                            const BorderSide(color: Colors.black45, width: 1),
+                        borderSide: const BorderSide(color: Colors.black45, width: 1),
                         borderRadius: BorderRadius.circular(8))),
               ),
             ),
@@ -55,9 +54,7 @@ class _ContactTabViewState extends State<ContactTabView> {
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             child: Obx(
-              () => Column(
-                  children:
-                      viewModel.contacts.map((e) => _userCard(e)).toList()),
+              () => Column(children: viewModel.contacts.map((e) => _userCard(e)).toList()),
             ),
           ),
         ),

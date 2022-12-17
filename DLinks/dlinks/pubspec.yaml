@@ -56,13 +56,16 @@ dependencies:
   flutter_downloader: ^1.9.1
   permission_handler: ^10.2.0
   shared_preferences: ^2.0.15
-  file_picker: ^5.2.3
 
   # new feature
   speech_to_text: ^6.1.1
   google_mlkit_text_recognition: ^0.4.0
   http: ^0.13.0
   path_provider: ^2.0.0
+  file_manager: ^1.0.1
+  file_picker: ^4.6.1
+  open_file: ^3.2.1
+  video_thumbnail: ^0.5.3
 
   #network
   connectivity_plus: ^2.3.9

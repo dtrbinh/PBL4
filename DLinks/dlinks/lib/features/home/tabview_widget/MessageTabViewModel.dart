@@ -8,6 +8,7 @@ class MessageTabViewModel extends GetxController {
   RxList userInbox = [].obs;
 
   Future<void> initData() async {
+    // userInbox.value = [];
     userInbox.value = await CloudFirestoreService()
         .getAllChatDialog(c.userProvider.value.currentUser!.uid);
     // TODO: fix send myself message

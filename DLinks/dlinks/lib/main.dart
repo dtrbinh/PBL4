@@ -9,6 +9,7 @@ import 'data/model/LifeCycleEventHandler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp();
   WidgetsBinding.instance.addObserver(LifecycleEventHandler(
     detachedCallBack: () async {
@@ -21,7 +22,7 @@ void main() async {
 
   await FlutterDownloader.initialize(
       debug: false, ignoreSsl: true // option: set to false to disable working with http links (default: false)
-      );
+  );
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
 
   runApp(const DLinksApplication());

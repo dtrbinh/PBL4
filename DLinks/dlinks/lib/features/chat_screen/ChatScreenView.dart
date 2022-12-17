@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dlinks/data/repository/UserRepository.dart';
 import 'package:dlinks/features/chat_screen/ChatScreenViewModel.dart';
+import 'package:dlinks/utils/error_manager/ErrorLogger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 
 class ChatScreenView extends StatefulWidget {
   final String theirUid;
@@ -32,7 +34,12 @@ class _ChatScreenViewState extends State<ChatScreenView> {
     return Scaffold(
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        leadingWidth: 30,
+        leading: IconButton(
+          padding: const EdgeInsets.only(left: 20),
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+          onPressed: () => Get.back(),
+        ),
+        leadingWidth: 40,
         backgroundColor: Colors.black,
         title: Obx(() => Row(
               children: [
@@ -109,9 +116,13 @@ class _ChatScreenViewState extends State<ChatScreenView> {
             )),
         actions: [
           IconButton(
-              onPressed: () {},
+              onPressed: () async {
+                // var docsDir = await getExternalStorageDirectory();
+                // logWarning("Path: ${docsDir?.path}");
+              },
               icon: const Icon(
                 Icons.more_vert,
+                color: Colors.white,
               ))
         ],
       ),

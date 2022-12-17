@@ -1,4 +1,5 @@
 import 'package:dlinks/data/services/CloudFirestoreService.dart';
+import 'package:dlinks/features/download_manager/DownloadManagerView.dart';
 import 'package:dlinks/features/home/tabview_widget/AccountTabView.dart';
 import 'package:dlinks/features/home/tabview_widget/CallTabView.dart';
 import 'package:dlinks/features/home/tabview_widget/CallTabViewModel.dart';
@@ -22,12 +23,14 @@ class HomeViewModel extends GetxController {
     switch (currentTab.value) {
       case 0:
         return const MessageTabView();
+      // case 1:
+      //   return CallTabView(callTabViewModel);
       case 1:
-        return CallTabView(callTabViewModel);
-      case 2:
         return const ContactTabView();
       case 3:
         return const AccountTabView();
+      case 2:
+        return const DownloadManagerView();
       default:
         return const MessageTabView();
     }
