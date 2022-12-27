@@ -4,11 +4,11 @@ import 'dart:typed_data';
 import 'package:dlinks/features/home/HomeViewModel.dart';
 import 'package:file_manager/file_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get/get.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:video_player/video_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 
 import '../../utils/AppColor.dart';
@@ -80,8 +80,7 @@ class _DownloadManagerViewState extends State<DownloadManagerView> {
             ),
             onPressed: () async {
               // debugPrint(viewModel.controller.getCurrentPath);
-              if (viewModel.controller.getCurrentPath ==
-                      (await getExternalStorageDirectory())?.path ||
+              if (viewModel.controller.getCurrentPath == (await getExternalStorageDirectory())?.path ||
                   await viewModel.controller.isRootDirectory()) {
                 Get.find<HomeViewModel>().changeTab(0);
               } else {
@@ -102,119 +101,139 @@ class _DownloadManagerViewState extends State<DownloadManagerView> {
             ),
           ),
           builder: (context, snapshot) {
-            return ListView.builder(
-              itemCount: snapshot.length,
-              itemBuilder: (context, index) {
-                FileSystemEntity entity = snapshot[index];
-                return Container(
-                  clipBehavior: Clip.hardEdge,
-                  height: 80,
-                  margin: const EdgeInsets.only(left: 16, right: 16, top: 16),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    boxShadow: const [
-                      BoxShadow(color: Colors.black12, blurRadius: 15)
-                    ],
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: ListTile(
-                    leading: SizedBox(
-                        width: 80,
+            viewModel.entities.value = snapshot;
+            return GetBuilder<DownloadManagerViewModel>(
+              builder: (context) {
+                return ListView.builder(
+                  itemCount: viewModel.entities.value.length,
+                  itemBuilder: (context, index) {
+                    FileSystemEntity entity = viewModel.entities.value[index];
+                    return Slidable(
+                      endActionPane: ActionPane(
+                        dragDismissible: false,
+                        motion: const ScrollMotion(),
+                        children: [
+                          CustomSlidableAction(
+                            backgroundColor: Colors.transparent,
+                            foregroundColor: Colors.transparent,
+                            padding: EdgeInsets.zero,
+                            onPressed: (context) async {
+                              viewModel.entities.value.remove(entity);
+                              await entity.delete(recursive: true);
+                              viewModel.update();
+                            },
+                            child: Container(
+                              width: 100,
+                              height: 100,
+                              margin: const EdgeInsets.only(top: 16),
+                              decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(12)),
+                              child: const Icon(
+                                Icons.delete,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      child: Container(
+                        clipBehavior: Clip.hardEdge,
                         height: 80,
-                        child: FittedBox(child: itemLeading(entity))),
-                    title: Text(
-                      FileManager.isFile(entity)
-                          ? viewModel.getFilename(entity)
-                          : FileManager.basename(entity),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    subtitle: subtitle(entity),
-                    onLongPress: () {
-                      //TODO: implements some things about action longpress
-                      if (FileManager.isFile(entity)) {
-                      } else {}
-                    },
-                    onTap: () async {
-                      if (FileManager.isDirectory(entity)) {
-                        // open the folder
-                        viewModel.controller.openDirectory(entity);
+                        margin: const EdgeInsets.only(left: 16, right: 16, top: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 15)],
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: ListTile(
+                          leading: SizedBox(width: 80, height: 80, child: FittedBox(child: itemLeading(entity))),
+                          title: Text(
+                            FileManager.isFile(entity) ? viewModel.getFilename(entity) : FileManager.basename(entity),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          subtitle: subtitle(entity),
+                          onLongPress: () {
+                            //TODO: implements some things about action longpress
+                            if (FileManager.isFile(entity)) {
+                            } else {}
+                          },
+                          onTap: () async {
+                            if (FileManager.isDirectory(entity)) {
+                              // open the folder
+                              viewModel.controller.openDirectory(entity);
 
-                        // delete a folder
-                        // await entity.delete(recursive: true);
+                              // delete a folder
+                              // await entity.delete(recursive: true);
 
-                        // rename a folder
-                        // await entity.rename("newPath");
+                              // rename a folder
+                              // await entity.rename("newPath");
 
-                        // Check weather folder exists
-                        // entity.exists();
+                              // Check weather folder exists
+                              // entity.exists();
 
-                        // get date of file
-                        // DateTime date = (await entity.stat()).modified;
-                      } else {
-                        var fileSize = (await entity.stat()).size;
-                        var lastModified = (await entity.stat()).modified;
-                        showDialog(
-                            context: context,
-                            builder: (context) {
-                              return AlertDialog(
-                                title: const Text('File Information'),
-                                content: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                        "File name: ${viewModel.getFilename(entity)}"),
-                                    Text(
-                                        "File size: ${FileManager.formatBytes(fileSize)}"),
-                                    Text(
-                                        "Last modified: ${lastModified.toString()}"),
-                                    const SizedBox(
-                                      height: 10,
-                                    ),
-                                    Center(
-                                      child: ElevatedButton(
-                                          style: ButtonStyle(
-                                              backgroundColor:
-                                                  MaterialStateProperty.all(
-                                                      Colors.black)),
-                                          onPressed: () {
-                                            Get.back();
-                                            // debugPrint(entity.path);
-                                            OpenFile.open(entity.path);
-                                          },
-                                          child: const Text(
-                                            'Open in File Explorer',
-                                            style:
-                                                TextStyle(color: Colors.white),
-                                          )),
-                                    )
-                                  ],
-                                ),
-                              );
-                            });
-                        // delete a file
-                        // await entity.delete();
+                              // get date of file
+                              // DateTime date = (await entity.stat()).modified;
+                            } else {
+                              var fileSize = (await entity.stat()).size;
+                              var lastModified = (await entity.stat()).modified;
+                              showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      title: const Text('File Information'),
+                                      content: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text("File name: ${viewModel.getFilename(entity)}"),
+                                          Text("File size: ${FileManager.formatBytes(fileSize)}"),
+                                          Text("Last modified: ${lastModified.toString()}"),
+                                          const SizedBox(
+                                            height: 10,
+                                          ),
+                                          Center(
+                                            child: ElevatedButton(
+                                                style:
+                                                    ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.black)),
+                                                onPressed: () {
+                                                  Get.back();
+                                                  // debugPrint(entity.path);
+                                                  OpenFile.open(entity.path);
+                                                },
+                                                child: const Text(
+                                                  'Open in File Explorer',
+                                                  style: TextStyle(color: Colors.white),
+                                                )),
+                                          )
+                                        ],
+                                      ),
+                                    );
+                                  });
+                              // delete a file
+                              // await entity.delete();
 
-                        // rename a file
-                        // await entity.rename("newPath");
+                              // rename a file
+                              // await entity.rename("newPath");
 
-                        // Check weather file exists
-                        // entity.exists();
+                              // Check weather file exists
+                              // entity.exists();
 
-                        // get date of file
-                        // DateTime date = (await entity.stat()).modified;
+                              // get date of file
+                              // DateTime date = (await entity.stat()).modified;
 
-                        // get the size of the file
-                        // int size = (await entity.stat()).size;
-                      }
-                    },
-                  ),
+                              // get the size of the file
+                              // int size = (await entity.stat()).size;
+                            }
+                          },
+                        ),
+                      ),
+                    );
+                  },
                 );
-              },
+              }
             );
           },
         ),
@@ -374,11 +393,9 @@ class _DownloadManagerViewState extends State<DownloadManagerView> {
                   onPressed: () async {
                     try {
                       // Create Folder
-                      await FileManager.createFolder(
-                          viewModel.controller.getCurrentPath, folderName.text);
+                      await FileManager.createFolder(viewModel.controller.getCurrentPath, folderName.text);
                       // Open Created Folder
-                      viewModel.controller.setCurrentPath =
-                          "${viewModel.controller.getCurrentPath}/${folderName.text}";
+                      viewModel.controller.setCurrentPath = "${viewModel.controller.getCurrentPath}/${folderName.text}";
                     } catch (e) {}
 
                     Get.back();

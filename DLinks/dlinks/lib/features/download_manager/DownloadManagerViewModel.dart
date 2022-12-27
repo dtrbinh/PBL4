@@ -3,12 +3,11 @@ import 'dart:io';
 import 'package:file_manager/file_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:path_provider/path_provider.dart';
 
 class DownloadManagerViewModel extends GetxController {
   FileManagerController controller = FileManagerController();
 
-  RxString title = 'DLinks'.obs;
+  RxString title = 'BKZalo'.obs;
   late RxList entities = [].obs;
 
   void initData() {
@@ -25,7 +24,11 @@ class DownloadManagerViewModel extends GetxController {
   void titleListener() {
     Future.delayed(const Duration(seconds: 0), () {
       controller.titleNotifier.addListener(() {
-        title.value = controller.titleNotifier.value;
+        if (controller.titleNotifier.value == "DLinks"){
+          title.value = "BKZalo";
+        } else {
+          title.value = controller.titleNotifier.value;
+        }
         update();
       });
     });
