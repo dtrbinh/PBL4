@@ -5,13 +5,14 @@ import 'package:flutter/material.dart';
 
 class SignInViewModel extends GetxController {
   UserRepository c = Get.find<UserRepository>();
-
+  var isLoading = false.obs;
   void loginGoogle() {
     c.authService.value.handleSignIn().then((value) {
       if (value != null) {
         c.userProvider.value.currentUser = value;
         Get.offNamed(AppRoute.home);
       }
+      isLoading.value = false;
       Get.snackbar(
           'Notification',
           value != null

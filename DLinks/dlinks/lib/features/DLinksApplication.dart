@@ -13,7 +13,7 @@ class DLinksApplication extends StatelessWidget {
     Get.put(UserRepository());
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'DLinks',
+      title: 'BKZALO',
       theme: ThemeData(
         brightness: Brightness.light,
         fontFamily: 'Nunito',

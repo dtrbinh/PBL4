@@ -34,7 +34,7 @@ class _MessageTabViewState extends State<MessageTabView> {
     return Scaffold(
         appBar: AppBar(
           title: const Text(
-            'DLinks',
+            'BKZalo',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
           ),
         ),

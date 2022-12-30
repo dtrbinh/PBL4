@@ -51,6 +51,7 @@ class DownloadTaskManager {
   }
 
   void startDownload() async {
+    debugPrint('Download started');
     final storage = await Permission.storage.request();
     final manageExternalStorage =
         await Permission.manageExternalStorage.request();
